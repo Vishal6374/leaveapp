@@ -12,7 +12,8 @@ import { db } from '../../lib/firebase';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { LeaveLog } from '../../types';
 import { format } from 'date-fns';
-import { ArrowLeft, Shield, Clock } from 'lucide-react-native';
+import { ArrowLeft, Shield, Clock, FileText } from 'lucide-react-native';
+import { colors, shadows, radius } from '../../theme';
 
 export const AuditTrailScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [logs, setLogs] = useState<LeaveLog[]>([]);
@@ -44,20 +45,21 @@ export const AuditTrailScreen: React.FC<{ navigation: any }> = ({ navigation }) 
       <Header />
       <View style={styles.content}>
         <TouchableOpacity style={styles.backRow} onPress={() => navigation.goBack()} activeOpacity={0.7}>
-          <ArrowLeft size={18} color="#2563eb" />
+          <ArrowLeft size={18} color={colors.primary} />
           <Text style={styles.backText}>Back to Dashboard</Text>
         </TouchableOpacity>
 
-        <Text style={styles.title}>System Audit Trail</Text>
-        <Text style={styles.subtitle}>Complete ledger of administrative and approval events.</Text>
+        <Text style={styles.title}>Security Audit Trail</Text>
+        <Text style={styles.subtitle}>Immutable ledger of administrative actions and decision events.</Text>
 
         {loading ? (
           <View style={styles.centerBox}>
-            <ActivityIndicator size="large" color="#2563eb" />
+            <ActivityIndicator size="large" color={colors.primary} />
           </View>
         ) : logs.length === 0 ? (
           <View style={styles.centerBox}>
-            <Text style={styles.emptyText}>No audit trail entries recorded.</Text>
+            <Shield size={36} color={colors.textMuted} style={{ marginBottom: 8 }} />
+            <Text style={styles.emptyText}>No audit trail entries recorded yet.</Text>
           </View>
         ) : (
           <FlatList
@@ -68,14 +70,16 @@ export const AuditTrailScreen: React.FC<{ navigation: any }> = ({ navigation }) 
             renderItem={({ item }: { item: LeaveLog }) => (
               <View style={styles.card}>
                 <View style={styles.row}>
-                  <Shield size={16} color="#7c3aed" />
+                  <View style={styles.iconBox}>
+                    <Shield size={16} color={colors.accentViolet} />
+                  </View>
                   <Text style={styles.actionText}>
-                    {item.actionByName} ({item.actionByRole}) {item.action} request for {item.studentName}
+                    <Text style={{ fontWeight: '800' }}>{item.actionByName || 'User'}</Text> ({item.actionByRole?.toUpperCase()}) {item.action} leave request for <Text style={{ fontWeight: '800' }}>{item.studentName || 'Student'}</Text>
                   </Text>
                 </View>
                 <View style={styles.timeRow}>
-                  <Clock size={12} color="#94a3b8" />
-                  <Text style={styles.timeText}>{format(new Date(item.timestamp), 'yyyy-MM-dd HH:mm:ss')}</Text>
+                  <Clock size={12} color={colors.textMuted} />
+                  <Text style={styles.timeText}>{format(new Date(item.timestamp), 'yyyy-MM-dd • HH:mm:ss')}</Text>
                 </View>
                 {item.comment ? (
                   <View style={styles.commentBox}>
@@ -94,33 +98,35 @@ export const AuditTrailScreen: React.FC<{ navigation: any }> = ({ navigation }) 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: colors.bgPage,
   },
   content: {
     flex: 1,
-    padding: 16,
+    padding: 18,
   },
   backRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 10,
+    gap: 8,
+    marginBottom: 12,
   },
   backText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#2563eb',
+    fontWeight: '700',
+    color: colors.primary,
   },
   title: {
     fontSize: 22,
-    fontWeight: '800',
-    color: '#0f172a',
+    fontWeight: '900',
+    color: colors.textPrimary,
+    letterSpacing: -0.5,
     marginBottom: 2,
   },
   subtitle: {
     fontSize: 13,
-    color: '#64748b',
-    marginBottom: 14,
+    color: colors.textMuted,
+    marginBottom: 16,
+    fontWeight: '500',
   },
   centerBox: {
     flex: 1,
@@ -130,50 +136,66 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: '#94a3b8',
+    color: colors.textMuted,
+    fontWeight: '600',
   },
   listPadding: {
-    paddingBottom: 20,
+    paddingBottom: 24,
   },
   card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 10,
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.md,
+    padding: 16,
+    marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    elevation: 1,
+    borderColor: colors.borderLight,
+    ...shadows.sm,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
+    gap: 10,
+    marginBottom: 6,
+  },
+  iconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: radius.xs,
+    backgroundColor: colors.accentVioletLight,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   actionText: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#0f172a',
+    color: colors.textPrimary,
     flex: 1,
+    lineHeight: 18,
   },
   timeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    marginTop: 2,
+    gap: 6,
+    marginTop: 4,
+    paddingLeft: 42,
   },
   timeText: {
     fontSize: 11,
-    color: '#94a3b8',
+    color: colors.textMuted,
+    fontWeight: '500',
   },
   commentBox: {
     backgroundColor: '#f8fafc',
-    borderRadius: 8,
-    padding: 8,
-    marginTop: 6,
+    borderRadius: radius.xs,
+    padding: 10,
+    marginTop: 8,
+    marginLeft: 42,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
   },
   commentText: {
-    fontSize: 11,
-    color: '#475569',
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: '500',
   },
 });
+

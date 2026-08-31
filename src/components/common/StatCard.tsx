@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { colors, shadows, radius } from '../../theme';
 
 interface StatCardProps {
   title: string;
@@ -14,7 +15,7 @@ export const StatCard: React.FC<StatCardProps> = ({
   value,
   subtext,
   icon,
-  accentColor = '#2563eb',
+  accentColor = colors.primary,
 }) => {
   return (
     <View style={styles.card}>
@@ -22,56 +23,70 @@ export const StatCard: React.FC<StatCardProps> = ({
         <Text style={styles.title} numberOfLines={1}>
           {title}
         </Text>
-        {icon ? <View style={[styles.iconBox, { backgroundColor: `${accentColor}15` }]}>{icon}</View> : null}
+        {icon ? (
+          <View style={[styles.iconBox, { backgroundColor: `${accentColor}18` }]}>
+            {icon}
+          </View>
+        ) : null}
       </View>
       <Text style={[styles.value, { color: accentColor }]}>{value}</Text>
-      {subtext ? <Text style={styles.subtext}>{subtext}</Text> : null}
+      {subtext ? (
+        <View style={styles.subtextContainer}>
+          <Text style={styles.subtext} numberOfLines={1}>
+            {subtext}
+          </Text>
+        </View>
+      ) : null}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 14,
-    padding: 14,
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.md,
+    padding: 16,
     marginVertical: 6,
     flex: 1,
     minWidth: 140,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
+    borderColor: colors.borderLight,
+    ...shadows.sm,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   title: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#64748b',
+    fontWeight: '700',
+    color: colors.textSecondary,
     flex: 1,
+    letterSpacing: 0.2,
+    textTransform: 'uppercase',
   },
   iconBox: {
-    padding: 6,
-    borderRadius: 8,
+    width: 34,
+    height: 34,
+    borderRadius: radius.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },
   value: {
-    fontSize: 22,
-    fontWeight: '800',
+    fontSize: 26,
+    fontWeight: '900',
     marginBottom: 4,
+    letterSpacing: -0.5,
+  },
+  subtextContainer: {
+    marginTop: 2,
   },
   subtext: {
     fontSize: 11,
-    color: '#94a3b8',
-    fontWeight: '500',
+    color: colors.textMuted,
+    fontWeight: '600',
   },
 });
+

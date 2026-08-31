@@ -13,6 +13,7 @@ import { db } from '../../lib/firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { LeaveRequest } from '../../types';
 import { ArrowLeft, BarChart3, CheckCircle2, Clock, XCircle, FileText } from 'lucide-react-native';
+import { colors, shadows, radius } from '../../theme';
 
 export const ReportsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
@@ -51,7 +52,7 @@ export const ReportsScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2563eb" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -61,7 +62,7 @@ export const ReportsScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
       <Header />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <TouchableOpacity style={styles.backRow} onPress={() => navigation.goBack()} activeOpacity={0.7}>
-          <ArrowLeft size={18} color="#2563eb" />
+          <ArrowLeft size={18} color={colors.primary} />
           <Text style={styles.backText}>Back to Dashboard</Text>
         </TouchableOpacity>
 
@@ -77,47 +78,53 @@ export const ReportsScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
         <Text style={styles.sectionHeader}>Status Breakdown</Text>
         <View style={styles.grid}>
           <StatCard
-            title="Total Requests"
+            title="TOTAL REQUESTS"
             value={total}
-            accentColor="#2563eb"
-            icon={<FileText size={16} color="#2563eb" />}
+            subtext="Applications"
+            accentColor={colors.primary}
+            icon={<FileText size={18} color={colors.primary} />}
           />
           <StatCard
-            title="Approved"
+            title="APPROVED"
             value={approved}
-            accentColor="#16a34a"
-            icon={<CheckCircle2 size={16} color="#16a34a" />}
+            subtext="Granted"
+            accentColor={colors.success}
+            icon={<CheckCircle2 size={18} color={colors.success} />}
           />
         </View>
 
         <View style={styles.grid}>
           <StatCard
-            title="Pending"
+            title="PENDING"
             value={pending}
-            accentColor="#d97706"
-            icon={<Clock size={16} color="#d97706" />}
+            subtext="In review"
+            accentColor={colors.warning}
+            icon={<Clock size={18} color={colors.warning} />}
           />
           <StatCard
-            title="Rejected"
+            title="REJECTED"
             value={rejected}
-            accentColor="#dc2626"
-            icon={<XCircle size={16} color="#dc2626" />}
+            subtext="Declined"
+            accentColor={colors.danger}
+            icon={<XCircle size={18} color={colors.danger} />}
           />
         </View>
 
         <Text style={styles.sectionHeader}>Category Breakdown</Text>
         <View style={styles.grid}>
           <StatCard
-            title="Leave Requests"
+            title="LEAVE APPLICATIONS"
             value={leaveCount}
-            accentColor="#0284c7"
-            icon={<BarChart3 size={16} color="#0284c7" />}
+            subtext="Casual & Medical"
+            accentColor={colors.secondary}
+            icon={<BarChart3 size={18} color={colors.secondary} />}
           />
           <StatCard
-            title="On-Duty (OD)"
+            title="ON-DUTY (OD)"
             value={odCount}
-            accentColor="#9333ea"
-            icon={<BarChart3 size={16} color="#9333ea" />}
+            subtext="Academic OD"
+            accentColor={colors.accentViolet}
+            icon={<BarChart3 size={18} color={colors.accentViolet} />}
           />
         </View>
       </ScrollView>
@@ -128,68 +135,74 @@ export const ReportsScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: colors.bgPage,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.bgCard,
   },
   scrollContent: {
-    padding: 16,
+    padding: 18,
   },
   backRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 10,
+    gap: 8,
+    marginBottom: 12,
   },
   backText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#2563eb',
+    fontWeight: '700',
+    color: colors.primary,
   },
   title: {
     fontSize: 22,
-    fontWeight: '800',
-    color: '#0f172a',
+    fontWeight: '900',
+    color: colors.textPrimary,
+    letterSpacing: -0.5,
     marginBottom: 2,
   },
   subtitle: {
     fontSize: 13,
-    color: '#64748b',
-    marginBottom: 14,
+    color: colors.textMuted,
+    marginBottom: 16,
+    fontWeight: '500',
   },
   banner: {
     backgroundColor: '#0f172a',
-    borderRadius: 18,
-    padding: 20,
+    borderRadius: radius.lg,
+    padding: 24,
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 18,
+    ...shadows.lg,
   },
   bannerVal: {
-    fontSize: 38,
+    fontSize: 44,
     fontWeight: '900',
-    color: '#22c55e',
+    color: colors.success,
+    letterSpacing: -1,
     marginBottom: 2,
   },
   bannerTitle: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#ffffff',
     marginBottom: 4,
   },
   bannerSub: {
     fontSize: 12,
-    color: '#94a3b8',
+    color: colors.textMuted,
+    fontWeight: '500',
   },
   sectionHeader: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#1e293b',
-    marginTop: 8,
-    marginBottom: 10,
+    fontSize: 16,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    marginTop: 10,
+    marginBottom: 12,
+    letterSpacing: -0.2,
   },
   grid: {
     flexDirection: 'row',
@@ -197,3 +210,4 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
 });
+

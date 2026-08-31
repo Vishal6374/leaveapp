@@ -2,7 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { LeaveRequest } from '../../types';
 import { format } from 'date-fns';
-import { Calendar, FileText, Check, X } from 'lucide-react-native';
+import { Calendar, FileText, Check, X, User } from 'lucide-react-native';
+import { colors, shadows, radius } from '../../theme';
 
 interface RequestCardProps {
   request: LeaveRequest;
@@ -18,71 +19,82 @@ export const RequestCard: React.FC<RequestCardProps> = ({
   showActions = false,
 }) => {
   const getStatusColor = (status: string) => {
-    switch (status) {
+    switch (status?.toLowerCase()) {
       case 'approved':
-        return { bg: '#dcfce7', text: '#15803d', border: '#bbf7d0' };
+        return { bg: colors.successBg, text: colors.successText, border: colors.successBorder };
       case 'rejected':
-        return { bg: '#fee2e2', text: '#b91c1c', border: '#fca5a5' };
+        return { bg: colors.dangerBg, text: colors.dangerText, border: colors.dangerBorder };
       default:
-        return { bg: '#fef3c7', text: '#b45309', border: '#fde68a' };
+        return { bg: colors.warningBg, text: colors.warningText, border: colors.warningBorder };
     }
   };
 
   const statusStyle = getStatusColor(request.status);
+  const isOd = request.type === 'od';
 
   return (
     <View style={styles.card}>
+      {/* Top Header Row */}
       <View style={styles.header}>
         <View style={styles.typeRow}>
-          <View style={[styles.typeBadge, request.type === 'od' ? styles.odBadge : styles.leaveBadge]}>
-            <Text style={[styles.typeText, request.type === 'od' ? styles.odText : styles.leaveText]}>
-              {request.type.toUpperCase()}
+          <View style={[styles.typeBadge, isOd ? styles.odBadge : styles.leaveBadge]}>
+            <Text style={[styles.typeText, isOd ? styles.odText : styles.leaveText]}>
+              {request.type?.toUpperCase()}
+              {(request as any).subType ? ` • ${(request as any).subType.toUpperCase()}` : ''}
             </Text>
           </View>
+
           {request.studentName ? (
-            <Text style={styles.studentName} numberOfLines={1}>
-              {request.studentName}
-            </Text>
+            <View style={styles.studentInfo}>
+              <User size={14} color={colors.textSecondary} />
+              <Text style={styles.studentName} numberOfLines={1}>
+                {request.studentName}
+              </Text>
+            </View>
           ) : null}
         </View>
 
         <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg, borderColor: statusStyle.border }]}>
           <Text style={[styles.statusText, { color: statusStyle.text }]}>
-            {request.status.toUpperCase()}
+            {request.status?.toUpperCase()}
           </Text>
         </View>
       </View>
 
-      <View style={styles.dateRow}>
-        <Calendar size={14} color="#64748b" />
+      {/* Date Pill Container */}
+      <View style={styles.datePillContainer}>
+        <Calendar size={14} color={colors.primary} />
         <Text style={styles.dateText}>
           {format(new Date(request.fromDate), 'MMM dd, yyyy')} - {format(new Date(request.toDate), 'MMM dd, yyyy')}
         </Text>
       </View>
 
+      {/* Reason Container */}
       {request.reason ? (
         <View style={styles.reasonRow}>
-          <FileText size={14} color="#64748b" style={styles.reasonIcon} />
+          <FileText size={14} color={colors.textMuted} style={styles.reasonIcon} />
           <Text style={styles.reasonText} numberOfLines={2}>
             {request.reason}
           </Text>
         </View>
       ) : null}
 
+      {/* Comment Note Box */}
       {request.comment ? (
         <View style={styles.commentBox}>
-          <Text style={styles.commentLabel}>Note:</Text>
+          <Text style={styles.commentLabel}>Advisor Note:</Text>
           <Text style={styles.commentText}>{request.comment}</Text>
         </View>
       ) : null}
 
+      {/* Action Buttons Row */}
       {showActions && request.status === 'pending' && (onApprove || onReject) ? (
         <View style={styles.actionRow}>
           {onApprove ? (
             <TouchableOpacity
               style={[styles.btn, styles.approveBtn]}
               onPress={() => onApprove(request.id)}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
               <Check size={14} color="#ffffff" />
               <Text style={styles.approveBtnText}>Approve</Text>
@@ -93,7 +105,7 @@ export const RequestCard: React.FC<RequestCardProps> = ({
             <TouchableOpacity
               style={[styles.btn, styles.rejectBtn]}
               onPress={() => onReject(request.id)}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
               <X size={14} color="#ffffff" />
               <Text style={styles.rejectBtnText}>Reject</Text>
@@ -107,141 +119,163 @@ export const RequestCard: React.FC<RequestCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 14,
-    padding: 14,
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.md,
+    padding: 16,
     marginVertical: 6,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
+    borderColor: colors.borderLight,
+    ...shadows.sm,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: 12,
+    gap: 8,
   },
   typeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
     gap: 8,
+    flexWrap: 'wrap',
   },
   typeBadge: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 9,
     paddingVertical: 3,
-    borderRadius: 6,
+    borderRadius: radius.xs,
+    borderWidth: 1,
   },
   leaveBadge: {
-    backgroundColor: '#eff6ff',
+    backgroundColor: colors.typeLeave.bg,
+    borderColor: colors.typeLeave.border,
   },
   odBadge: {
-    backgroundColor: '#f3e8ff',
+    backgroundColor: colors.typeOd.bg,
+    borderColor: colors.typeOd.border,
   },
   typeText: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '800',
+    letterSpacing: 0.3,
   },
   leaveText: {
-    color: '#2563eb',
+    color: colors.typeLeave.text,
   },
   odText: {
-    color: '#7c3aed',
+    color: colors.typeOd.text,
+  },
+  studentInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    flex: 1,
   },
   studentName: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#1e293b',
+    color: colors.textPrimary,
     flex: 1,
   },
   statusBadge: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     paddingVertical: 3,
-    borderRadius: 6,
+    borderRadius: radius.xs,
     borderWidth: 1,
   },
   statusText: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
-  dateRow: {
+  datePillContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 6,
+    gap: 8,
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: radius.sm,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#e0e7ff',
   },
   dateText: {
     fontSize: 12,
-    fontWeight: '500',
-    color: '#475569',
+    fontWeight: '700',
+    color: colors.primaryDark,
   },
   reasonRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 6,
-    marginTop: 4,
+    gap: 8,
+    marginTop: 2,
   },
   reasonIcon: {
     marginTop: 2,
   },
   reasonText: {
-    fontSize: 12,
-    color: '#64748b',
+    fontSize: 13,
+    color: colors.textSecondary,
     flex: 1,
-    lineHeight: 16,
+    lineHeight: 18,
+    fontWeight: '500',
   },
   commentBox: {
     backgroundColor: '#f8fafc',
-    borderRadius: 8,
-    padding: 8,
-    marginTop: 8,
+    borderRadius: radius.sm,
+    padding: 10,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
   },
   commentLabel: {
     fontSize: 10,
-    fontWeight: '700',
-    color: '#64748b',
+    fontWeight: '800',
+    color: colors.textMuted,
     marginBottom: 2,
+    textTransform: 'uppercase',
   },
   commentText: {
-    fontSize: 11,
-    color: '#334155',
+    fontSize: 12,
+    color: colors.textPrimary,
+    fontWeight: '600',
   },
   actionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    gap: 8,
-    marginTop: 12,
-    paddingTop: 10,
+    gap: 10,
+    marginTop: 14,
+    paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
+    borderTopColor: colors.borderSubtle,
   },
   btn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 8,
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: radius.sm,
+    ...shadows.sm,
   },
   approveBtn: {
-    backgroundColor: '#16a34a',
+    backgroundColor: colors.success,
   },
   approveBtnText: {
     color: '#ffffff',
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '800',
   },
   rejectBtn: {
-    backgroundColor: '#dc2626',
+    backgroundColor: colors.danger,
   },
   rejectBtnText: {
     color: '#ffffff',
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '800',
   },
 });
+

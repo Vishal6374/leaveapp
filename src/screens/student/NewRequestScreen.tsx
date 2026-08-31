@@ -13,7 +13,8 @@ import { useRequests } from '../../hooks/useRequests';
 import { Header } from '../../components/common/Header';
 import { RequestType } from '../../types';
 import { format, addDays } from 'date-fns';
-import { Calendar, FileText, ArrowLeft, Send } from 'lucide-react-native';
+import { Calendar, FileText, ArrowLeft, Send, Sparkles } from 'lucide-react-native';
+import { colors, shadows, radius } from '../../theme';
 
 export const NewRequestScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { createRequest } = useRequests();
@@ -62,16 +63,20 @@ export const NewRequestScreen: React.FC<{ navigation: any }> = ({ navigation }) 
       <Header />
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <TouchableOpacity style={styles.backRow} onPress={() => navigation.goBack()} activeOpacity={0.7}>
-          <ArrowLeft size={18} color="#2563eb" />
+          <ArrowLeft size={18} color={colors.primary} />
           <Text style={styles.backText}>Back to Dashboard</Text>
         </TouchableOpacity>
 
         <View style={styles.card}>
-          <Text style={styles.title}>New Leave / OD Request</Text>
-          <Text style={styles.subtitle}>Fill out the details below to submit for advisor approval.</Text>
+          <View style={styles.headerRow}>
+            <View>
+              <Text style={styles.title}>Apply for Leave / OD</Text>
+              <Text style={styles.subtitle}>Fill out the application details for advisor review.</Text>
+            </View>
+          </View>
 
           {/* Request Type Selector */}
-          <Text style={styles.label}>Request Category *</Text>
+          <Text style={styles.label}>APPLICATION CATEGORY *</Text>
           <View style={styles.typeRow}>
             <TouchableOpacity
               style={[styles.typeBtn, requestType === 'leave' ? styles.activeTypeBtn : styles.inactiveTypeBtn]}
@@ -79,7 +84,7 @@ export const NewRequestScreen: React.FC<{ navigation: any }> = ({ navigation }) 
               activeOpacity={0.8}
             >
               <Text style={[styles.typeBtnText, requestType === 'leave' ? styles.activeTypeBtnText : styles.inactiveTypeBtnText]}>
-                Leave Request
+                Casual Leave
               </Text>
             </TouchableOpacity>
 
@@ -96,13 +101,14 @@ export const NewRequestScreen: React.FC<{ navigation: any }> = ({ navigation }) 
 
           {requestType === 'leave' ? (
             <View style={styles.fieldBlock}>
-              <Text style={styles.label}>Leave Subtype</Text>
+              <Text style={styles.label}>LEAVE SUBTYPE</Text>
               <View style={styles.chipRow}>
                 {['casual', 'medical', 'academic'].map((st) => (
                   <TouchableOpacity
                     key={st}
                     style={[styles.subChip, subType === st ? styles.activeSubChip : styles.inactiveSubChip]}
                     onPress={() => setSubType(st)}
+                    activeOpacity={0.8}
                   >
                     <Text style={[styles.subChipText, subType === st ? styles.activeSubText : styles.inactiveSubText]}>
                       {st.toUpperCase()}
@@ -116,46 +122,46 @@ export const NewRequestScreen: React.FC<{ navigation: any }> = ({ navigation }) 
           {/* Date Inputs */}
           <View style={styles.dateGrid}>
             <View style={styles.flexHalf}>
-              <Text style={styles.label}>From Date (YYYY-MM-DD) *</Text>
+              <Text style={styles.label}>FROM DATE *</Text>
               <View style={styles.inputBox}>
-                <Calendar size={16} color="#64748b" />
+                <Calendar size={16} color={colors.primary} />
                 <TextInput
                   style={styles.input}
                   value={fromDateStr}
                   onChangeText={setFromDateStr}
                   placeholder="YYYY-MM-DD"
-                  placeholderTextColor="#94a3b8"
+                  placeholderTextColor={colors.textMuted}
                 />
               </View>
             </View>
 
             <View style={styles.flexHalf}>
-              <Text style={styles.label}>To Date (YYYY-MM-DD) *</Text>
+              <Text style={styles.label}>TO DATE *</Text>
               <View style={styles.inputBox}>
-                <Calendar size={16} color="#64748b" />
+                <Calendar size={16} color={colors.primary} />
                 <TextInput
                   style={styles.input}
                   value={toDateStr}
                   onChangeText={setToDateStr}
                   placeholder="YYYY-MM-DD"
-                  placeholderTextColor="#94a3b8"
+                  placeholderTextColor={colors.textMuted}
                 />
               </View>
             </View>
           </View>
 
           {/* Reason Input */}
-          <Text style={styles.label}>Reason for Request *</Text>
+          <Text style={styles.label}>REASON FOR APPLICATION *</Text>
           <View style={[styles.inputBox, styles.textAreaBox]}>
-            <FileText size={16} color="#64748b" style={styles.textAreaIcon} />
+            <FileText size={16} color={colors.primary} style={styles.textAreaIcon} />
             <TextInput
               style={[styles.input, styles.textArea]}
               value={reason}
               onChangeText={setReason}
-              placeholder="State the reason clearly..."
+              placeholder="State your reason clearly..."
               multiline
               numberOfLines={4}
-              placeholderTextColor="#94a3b8"
+              placeholderTextColor={colors.textMuted}
             />
           </View>
 
@@ -163,14 +169,14 @@ export const NewRequestScreen: React.FC<{ navigation: any }> = ({ navigation }) 
             style={styles.submitBtn}
             onPress={handleSubmit}
             disabled={loading}
-            activeOpacity={0.7}
+            activeOpacity={0.8}
           >
             {loading ? (
               <ActivityIndicator color="#ffffff" />
             ) : (
               <View style={styles.btnInner}>
                 <Send size={18} color="#ffffff" />
-                <Text style={styles.submitBtnText}>Submit Request</Text>
+                <Text style={styles.submitBtnText}>Submit Application</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -183,51 +189,52 @@ export const NewRequestScreen: React.FC<{ navigation: any }> = ({ navigation }) 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: colors.bgPage,
   },
   scrollContent: {
-    padding: 16,
+    padding: 18,
   },
   backRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 14,
+    gap: 8,
+    marginBottom: 16,
   },
   backText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#2563eb',
+    fontWeight: '700',
+    color: colors.primary,
   },
   card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 18,
-    padding: 18,
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.xl,
+    padding: 20,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    elevation: 2,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
+    borderColor: colors.borderLight,
+    ...shadows.md,
+  },
+  headerRow: {
+    marginBottom: 16,
   },
   title: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#0f172a',
-    marginBottom: 4,
+    fontSize: 22,
+    fontWeight: '900',
+    color: colors.textPrimary,
+    letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 13,
-    color: '#64748b',
-    marginBottom: 16,
+    color: colors.textMuted,
+    marginTop: 2,
+    fontWeight: '500',
   },
   label: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#334155',
+    fontSize: 11,
+    fontWeight: '800',
+    color: colors.textSecondary,
     marginBottom: 6,
-    marginTop: 10,
+    marginTop: 12,
+    letterSpacing: 0.5,
   },
   typeRow: {
     flexDirection: 'row',
@@ -236,29 +243,29 @@ const styles = StyleSheet.create({
   },
   typeBtn: {
     flex: 1,
-    height: 44,
-    borderRadius: 12,
+    height: 48,
+    borderRadius: radius.sm,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
   },
   activeTypeBtn: {
-    backgroundColor: '#2563eb',
-    borderColor: '#2563eb',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   inactiveTypeBtn: {
-    backgroundColor: '#f1f5f9',
-    borderColor: '#cbd5e1',
+    backgroundColor: colors.bgPage,
+    borderColor: colors.borderLight,
   },
   typeBtnText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   activeTypeBtnText: {
     color: '#ffffff',
   },
   inactiveTypeBtnText: {
-    color: '#475569',
+    color: colors.textSecondary,
   },
   fieldBlock: {
     marginBottom: 4,
@@ -268,32 +275,32 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   subChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: radius.xs,
     borderWidth: 1,
   },
   activeSubChip: {
-    backgroundColor: '#eff6ff',
-    borderColor: '#2563eb',
+    backgroundColor: colors.primaryLight,
+    borderColor: colors.primary,
   },
   inactiveSubChip: {
-    backgroundColor: '#f8fafc',
-    borderColor: '#e2e8f0',
+    backgroundColor: colors.bgPage,
+    borderColor: colors.borderLight,
   },
   subChipText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   activeSubText: {
-    color: '#2563eb',
+    color: colors.primary,
   },
   inactiveSubText: {
-    color: '#64748b',
+    color: colors.textMuted,
   },
   dateGrid: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 12,
   },
   flexHalf: {
     flex: 1,
@@ -301,23 +308,24 @@ const styles = StyleSheet.create({
   inputBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
-    borderRadius: 12,
-    paddingHorizontal: 12,
+    backgroundColor: colors.bgPage,
+    borderRadius: radius.sm,
+    paddingHorizontal: 14,
     height: 48,
     borderWidth: 1,
-    borderColor: '#cbd5e1',
+    borderColor: colors.borderLight,
   },
   input: {
     flex: 1,
     fontSize: 13,
-    color: '#0f172a',
+    color: colors.textPrimary,
     marginLeft: 8,
+    fontWeight: '600',
   },
   textAreaBox: {
-    height: 100,
+    height: 110,
     alignItems: 'flex-start',
-    paddingVertical: 10,
+    paddingVertical: 12,
   },
   textAreaIcon: {
     marginTop: 2,
@@ -326,12 +334,13 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   submitBtn: {
-    backgroundColor: '#2563eb',
-    height: 50,
-    borderRadius: 12,
+    backgroundColor: colors.primary,
+    height: 52,
+    borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 20,
+    marginTop: 24,
+    ...shadows.md,
   },
   btnInner: {
     flexDirection: 'row',
@@ -340,7 +349,8 @@ const styles = StyleSheet.create({
   },
   submitBtnText: {
     color: '#ffffff',
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
   },
 });
+

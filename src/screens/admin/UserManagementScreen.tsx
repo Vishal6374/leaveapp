@@ -12,7 +12,8 @@ import { Header } from '../../components/common/Header';
 import { db } from '../../lib/firebase';
 import { collection, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 import { User, UserRole } from '../../types';
-import { ArrowLeft, User as UserIcon, Shield } from 'lucide-react-native';
+import { ArrowLeft, User as UserIcon, Shield, Users } from 'lucide-react-native';
+import { colors, shadows, radius } from '../../theme';
 
 export const UserManagementScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [users, setUsers] = useState<User[]>([]);
@@ -67,19 +68,20 @@ export const UserManagementScreen: React.FC<{ navigation: any }> = ({ navigation
       <Header />
       <View style={styles.content}>
         <TouchableOpacity style={styles.backRow} onPress={() => navigation.goBack()} activeOpacity={0.7}>
-          <ArrowLeft size={18} color="#2563eb" />
+          <ArrowLeft size={18} color={colors.primary} />
           <Text style={styles.backText}>Back to Dashboard</Text>
         </TouchableOpacity>
 
-        <Text style={styles.title}>User & Access Management</Text>
-        <Text style={styles.subtitle}>Assign user roles and manage access privileges.</Text>
+        <Text style={styles.title}>User & Access Control</Text>
+        <Text style={styles.subtitle}>Assign role permissions and user privileges.</Text>
 
         {loading ? (
           <View style={styles.centerBox}>
-            <ActivityIndicator size="large" color="#2563eb" />
+            <ActivityIndicator size="large" color={colors.primary} />
           </View>
         ) : users.length === 0 ? (
           <View style={styles.centerBox}>
+            <Users size={36} color={colors.textMuted} style={{ marginBottom: 8 }} />
             <Text style={styles.emptyText}>No users registered in the system.</Text>
           </View>
         ) : (
@@ -88,42 +90,60 @@ export const UserManagementScreen: React.FC<{ navigation: any }> = ({ navigation
             keyExtractor={(item) => item.uid}
             contentContainerStyle={styles.listPadding}
             showsVerticalScrollIndicator={false}
-            renderItem={({ item }: { item: User }) => (
-              <View style={styles.userCard}>
-                <View style={styles.userHeader}>
-                  <View style={styles.userLeft}>
-                    <View style={styles.avatar}>
-                      <UserIcon size={18} color="#2563eb" />
+            renderItem={({ item }: { item: User }) => {
+              const initials = item.name
+                ? item.name
+                    .split(' ')
+                    .map((n) => n[0])
+                    .join('')
+                    .toUpperCase()
+                    .slice(0, 2)
+                : 'U';
+
+              return (
+                <View style={styles.userCard}>
+                  <View style={styles.userHeader}>
+                    <View style={styles.userLeft}>
+                      <View style={styles.avatar}>
+                        <Text style={styles.avatarText}>{initials}</Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.userName}>{item.name}</Text>
+                        <Text style={styles.userEmail}>{item.email}</Text>
+                      </View>
                     </View>
-                    <View>
-                      <Text style={styles.userName}>{item.name}</Text>
-                      <Text style={styles.userEmail}>{item.email}</Text>
+
+                    <View style={styles.roleBadge}>
+                      <Shield size={12} color={colors.primary} />
+                      <Text style={styles.roleText}>{item.role?.toUpperCase()}</Text>
                     </View>
                   </View>
-                  <View style={styles.roleBadge}>
-                    <Shield size={12} color="#1d4ed8" />
-                    <Text style={styles.roleText}>{item.role.toUpperCase()}</Text>
+
+                  <Text style={styles.deptLabel}>
+                    Department: {item.department || 'N/A'} {item.year ? `• Year ${item.year}` : ''}
+                  </Text>
+
+                  <Text style={styles.roleSelectLabel}>ASSIGN ROLE:</Text>
+                  <View style={styles.roleChipRow}>
+                    {ROLES.map((r) => {
+                      const isActive = item.role === r;
+                      return (
+                        <TouchableOpacity
+                          key={r}
+                          style={[styles.roleChip, isActive ? styles.activeRoleChip : styles.inactiveRoleChip]}
+                          onPress={() => !isActive && handleChangeRole(item, r)}
+                          activeOpacity={0.8}
+                        >
+                          <Text style={[styles.roleChipText, isActive ? styles.activeRoleText : styles.inactiveRoleText]}>
+                            {r.toUpperCase()}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
                 </View>
-
-                <Text style={styles.deptLabel}>Department: {item.department || 'Unassigned'}</Text>
-
-                <Text style={styles.roleSelectLabel}>Change Role:</Text>
-                <View style={styles.roleChipRow}>
-                  {ROLES.map((r) => (
-                    <TouchableOpacity
-                      key={r}
-                      style={[styles.roleChip, item.role === r ? styles.activeRoleChip : styles.inactiveRoleChip]}
-                      onPress={() => handleChangeRole(item, r)}
-                    >
-                      <Text style={[styles.roleChipText, item.role === r ? styles.activeRoleText : styles.inactiveRoleText]}>
-                        {r.toUpperCase()}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            )}
+              );
+            }}
           />
         )}
       </View>
@@ -134,33 +154,35 @@ export const UserManagementScreen: React.FC<{ navigation: any }> = ({ navigation
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: colors.bgPage,
   },
   content: {
     flex: 1,
-    padding: 16,
+    padding: 18,
   },
   backRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 10,
+    gap: 8,
+    marginBottom: 12,
   },
   backText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#2563eb',
+    fontWeight: '700',
+    color: colors.primary,
   },
   title: {
     fontSize: 22,
-    fontWeight: '800',
-    color: '#0f172a',
+    fontWeight: '900',
+    color: colors.textPrimary,
+    letterSpacing: -0.5,
     marginBottom: 2,
   },
   subtitle: {
     fontSize: 13,
-    color: '#64748b',
-    marginBottom: 14,
+    color: colors.textMuted,
+    marginBottom: 16,
+    fontWeight: '500',
   },
   centerBox: {
     flex: 1,
@@ -170,19 +192,20 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: '#94a3b8',
+    color: colors.textMuted,
+    fontWeight: '600',
   },
   listPadding: {
-    paddingBottom: 20,
+    paddingBottom: 24,
   },
   userCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 10,
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.md,
+    padding: 16,
+    marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    elevation: 1,
+    borderColor: colors.borderLight,
+    ...shadows.sm,
   },
   userHeader: {
     flexDirection: 'row',
@@ -194,49 +217,63 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    paddingRight: 8,
   },
   avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#eff6ff',
+    width: 40,
+    height: 40,
+    borderRadius: radius.full,
+    backgroundColor: colors.primaryLight,
+    borderWidth: 1,
+    borderColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 10,
   },
+  avatarText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: colors.primaryDark,
+  },
   userName: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#0f172a',
+    fontSize: 15,
+    fontWeight: '800',
+    color: colors.textPrimary,
   },
   userEmail: {
     fontSize: 11,
-    color: '#64748b',
+    color: colors.textMuted,
+    marginTop: 1,
   },
   roleBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#dbeafe',
-    paddingHorizontal: 8,
+    backgroundColor: colors.primaryLight,
+    borderColor: '#c7d2fe',
+    borderWidth: 1,
+    paddingHorizontal: 9,
     paddingVertical: 3,
-    borderRadius: 6,
+    borderRadius: radius.xs,
   },
   roleText: {
     fontSize: 10,
-    fontWeight: '700',
-    color: '#1d4ed8',
+    fontWeight: '800',
+    color: colors.primaryDark,
+    letterSpacing: 0.3,
   },
   deptLabel: {
     fontSize: 12,
-    color: '#475569',
-    marginBottom: 8,
+    color: colors.textSecondary,
+    marginBottom: 10,
+    fontWeight: '500',
   },
   roleSelectLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#64748b',
+    fontSize: 10,
+    fontWeight: '800',
+    color: colors.textMuted,
     marginBottom: 6,
+    letterSpacing: 0.5,
   },
   roleChipRow: {
     flexDirection: 'row',
@@ -244,26 +281,26 @@ const styles = StyleSheet.create({
   },
   roleChip: {
     paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
+    paddingVertical: 6,
+    borderRadius: radius.xs,
     borderWidth: 1,
   },
   activeRoleChip: {
-    backgroundColor: '#2563eb',
-    borderColor: '#2563eb',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   inactiveRoleChip: {
-    backgroundColor: '#f1f5f9',
-    borderColor: '#cbd5e1',
+    backgroundColor: colors.bgPage,
+    borderColor: colors.borderLight,
   },
   roleChipText: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   activeRoleText: {
     color: '#ffffff',
   },
   inactiveRoleText: {
-    color: '#475569',
+    color: colors.textSecondary,
   },
 });

@@ -28,7 +28,11 @@ import {
   Settings,
   ChevronRight,
   Shield,
+  Sparkles,
+  PlusCircle,
+  TrendingUp,
 } from 'lucide-react-native';
+import { colors, shadows, radius } from '../theme';
 
 export const DashboardScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { userData, currentUser } = useAuth();
@@ -202,27 +206,27 @@ export const DashboardScreen: React.FC<{ navigation: any }> = ({ navigation }) =
         }
       } catch {}
 
-      const attendancePct =
-        totalWorkingDays > 0 ? Math.max(0, Math.round(((totalWorkingDays - absentDays) / totalWorkingDays) * 100)) : 100;
-      if (attendancePct < 75) {
-        lowAttendanceCount++;
-      }
-      totalAttendanceSum += attendancePct;
+      const attendedDays = Math.max(0, totalWorkingDays - absentDays);
+      const percentage = totalWorkingDays > 0 ? (attendedDays / totalWorkingDays) * 100 : 100;
 
-      return {
-        student,
-        attendancePct,
-      };
+      totalAttendanceSum += percentage;
+      if (percentage < 75) lowAttendanceCount++;
+
+      return { student, percentage };
     });
 
-    const averageAttendance = students.length > 0 ? Math.round(totalAttendanceSum / students.length) : 100;
+    const averageAttendance = Math.round(totalAttendanceSum / students.length);
 
-    return {
-      averageAttendance,
-      lowAttendanceCount,
-      studentStats,
-    };
+    return { averageAttendance, lowAttendanceCount, studentStats };
   }, [students, allRequests, holidays, semesterStart]);
+
+  const pendingRequests = useMemo(() => {
+    return rawRequests.filter((r) => r.status === 'pending');
+  }, [rawRequests]);
+
+  const approvedRequests = useMemo(() => {
+    return rawRequests.filter((r) => r.status === 'approved');
+  }, [rawRequests]);
 
   if (requestsLoading || loadingConfig || dbLoading) {
     return (
@@ -233,100 +237,108 @@ export const DashboardScreen: React.FC<{ navigation: any }> = ({ navigation }) =
     );
   }
 
-  const pendingRequests = rawRequests.filter((r) => {
-    if (userData?.role === 'teacher') {
-      return (
-        selectedClass &&
-        r.status === 'pending' &&
-        r.department === selectedClass.department &&
-        r.year === selectedClass.year
-      );
-    }
-    return r.status === 'pending';
-  });
-
   const renderStudentDashboard = () => (
     <View style={styles.sectionContainer}>
       <View style={styles.banner}>
-        <Text style={styles.bannerTitle}>Welcome back, {userData?.name}!</Text>
+        <View style={styles.bannerHeaderRow}>
+          <Text style={styles.bannerTitle}>Student Portal</Text>
+          <View style={styles.heroBadge}>
+            <Sparkles size={12} color="#ffffff" />
+            <Text style={styles.heroBadgeText}>ACTIVE</Text>
+          </View>
+        </View>
         <Text style={styles.bannerSubtitle}>
-          Track your leave requests and submit new ones easily.
+          Track your leave requests, check attendance, and apply for OD seamlessly.
         </Text>
       </View>
 
       <View style={styles.statsRow}>
         <StatCard
-          title="Pending Requests"
-          value={rawRequests.filter((r) => r.status === 'pending').length}
-          accentColor="#d97706"
-          icon={<Clock size={16} color="#d97706" />}
+          title="TOTAL REQUESTS"
+          value={rawRequests.length}
+          subtext="Submitted total"
+          icon={<FileText size={18} color={colors.primary} />}
+          accentColor={colors.primary}
         />
         <StatCard
-          title="Approved Requests"
-          value={rawRequests.filter((r) => r.status === 'approved').length}
-          accentColor="#16a34a"
-          icon={<CheckCircle2 size={16} color="#16a34a" />}
+          title="PENDING"
+          value={pendingRequests.length}
+          subtext="Awaiting review"
+          icon={<Clock size={18} color={colors.warning} />}
+          accentColor={colors.warning}
+        />
+        <StatCard
+          title="APPROVED"
+          value={approvedRequests.length}
+          subtext="Granted leaves"
+          icon={<CheckCircle2 size={18} color={colors.success} />}
+          accentColor={colors.success}
         />
       </View>
 
       <Text style={styles.sectionHeader}>Quick Actions</Text>
-
+      
       <TouchableOpacity
         style={styles.actionCard}
         onPress={() => navigation.navigate('NewRequest')}
-        activeOpacity={0.7}
+        activeOpacity={0.8}
       >
         <View style={styles.actionLeft}>
-          <View style={[styles.actionIconBox, { backgroundColor: '#eff6ff' }]}>
-            <FileText size={20} color="#2563eb" />
+          <View style={[styles.actionIconBox, { backgroundColor: colors.primaryLight }]}>
+            <PlusCircle size={20} color={colors.primary} />
           </View>
-          <Text style={styles.actionText}>New Leave / OD Request</Text>
+          <View style={styles.actionTextBox}>
+            <Text style={styles.actionText}>Apply for Leave / OD</Text>
+            <Text style={styles.actionSubtext}>Submit new leave request or OD clearance</Text>
+          </View>
         </View>
-        <ChevronRight size={18} color="#94a3b8" />
+        <ChevronRight size={18} color={colors.textMuted} />
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.actionCard}
         onPress={() => navigation.navigate('MyRequests')}
-        activeOpacity={0.7}
+        activeOpacity={0.8}
       >
         <View style={styles.actionLeft}>
-          <View style={[styles.actionIconBox, { backgroundColor: '#f0fdf4' }]}>
-            <BarChart3 size={20} color="#16a34a" />
+          <View style={[styles.actionIconBox, { backgroundColor: colors.accentVioletLight }]}>
+            <FileText size={20} color={colors.accentViolet} />
           </View>
-          <Text style={styles.actionText}>View My Requests</Text>
+          <View style={styles.actionTextBox}>
+            <Text style={styles.actionText}>My Request History</Text>
+            <Text style={styles.actionSubtext}>View status of all submitted applications</Text>
+          </View>
         </View>
-        <ChevronRight size={18} color="#94a3b8" />
+        <ChevronRight size={18} color={colors.textMuted} />
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.actionCard}
         onPress={() => navigation.navigate('StudentStats')}
-        activeOpacity={0.7}
+        activeOpacity={0.8}
       >
         <View style={styles.actionLeft}>
-          <View style={[styles.actionIconBox, { backgroundColor: '#faf5ff' }]}>
-            <CalendarDays size={20} color="#9333ea" />
+          <View style={[styles.actionIconBox, { backgroundColor: colors.secondaryLight }]}>
+            <TrendingUp size={20} color={colors.secondary} />
           </View>
-          <Text style={styles.actionText}>Calendar & Attendance Stats</Text>
+          <View style={styles.actionTextBox}>
+            <Text style={styles.actionText}>Attendance & Analytics</Text>
+            <Text style={styles.actionSubtext}>Check attendance predictions & trends</Text>
+          </View>
         </View>
-        <ChevronRight size={18} color="#94a3b8" />
+        <ChevronRight size={18} color={colors.textMuted} />
       </TouchableOpacity>
 
-      <Text style={styles.sectionHeader}>Recent Requests</Text>
+      <Text style={styles.sectionHeader}>Recent Activity</Text>
       {rawRequests.length === 0 ? (
         <View style={styles.emptyCard}>
-          <Text style={styles.emptyText}>No leave requests submitted yet.</Text>
+          <Clock size={32} color={colors.textMuted} style={{ marginBottom: 8 }} />
+          <Text style={styles.emptyText}>No recent leave requests found.</Text>
         </View>
       ) : (
-        <FlatList
-          data={rawRequests.slice(0, 5)}
-          keyExtractor={(item) => item.id}
-          scrollEnabled={false}
-          renderItem={({ item }: { item: LeaveRequest }) => (
-            <RequestCard request={item} />
-          )}
-        />
+        rawRequests.slice(0, 3).map((req) => (
+          <RequestCard key={req.id} request={req} />
+        ))
       )}
     </View>
   );
@@ -334,117 +346,136 @@ export const DashboardScreen: React.FC<{ navigation: any }> = ({ navigation }) =
   const renderTeacherDashboard = () => (
     <View style={styles.sectionContainer}>
       <View style={styles.banner}>
-        <Text style={styles.bannerTitle}>Welcome, {userData?.name}!</Text>
+        <View style={styles.bannerHeaderRow}>
+          <Text style={styles.bannerTitle}>
+            {userData?.role === 'hod' ? 'HOD Portal' : 'Faculty Dashboard'}
+          </Text>
+          <View style={styles.heroBadge}>
+            <Sparkles size={12} color="#ffffff" />
+            <Text style={styles.heroBadgeText}>{userData?.department || 'DEPT'}</Text>
+          </View>
+        </View>
         <Text style={styles.bannerSubtitle}>
-          Review and process leave requests from your assigned class.
+          Manage student requests, track department stats, and approve leave clearance.
         </Text>
       </View>
 
-      {assignments.length > 0 ? (
+      {userData?.role === 'teacher' && assignments.length > 0 ? (
         <View style={styles.classSelectorBox}>
-          <Text style={styles.selectorLabel}>Class Assignments:</Text>
+          <Text style={styles.selectorLabel}>ASSIGNED CLASS ADVISOR FOR:</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
-            {assignments.map((asn) => (
-              <TouchableOpacity
-                key={asn.id}
-                style={[
-                  styles.chip,
-                  selectedClass?.id === asn.id ? styles.activeChip : styles.inactiveChip,
-                ]}
-                onPress={() => setSelectedClass(asn)}
-              >
-                <Text
-                  style={[
-                    styles.chipText,
-                    selectedClass?.id === asn.id ? styles.activeChipText : styles.inactiveChipText,
-                  ]}
+            {assignments.map((c) => {
+              const isSelected = selectedClass?.id === c.id;
+              return (
+                <TouchableOpacity
+                  key={c.id}
+                  style={[styles.chip, isSelected ? styles.activeChip : styles.inactiveChip]}
+                  onPress={() => setSelectedClass(c)}
+                  activeOpacity={0.8}
                 >
-                  {asn.department} - Year {asn.year}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <Text style={[styles.chipText, isSelected ? styles.activeChipText : styles.inactiveChipText]}>
+                    Year {c.year} - {c.department}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
         </View>
       ) : null}
 
       <View style={styles.statsRow}>
         <StatCard
-          title="Total Students"
-          value={students.length}
-          accentColor="#2563eb"
-          icon={<Users size={16} color="#2563eb" />}
-        />
-        <StatCard
-          title="Pending Requests"
+          title="PENDING REQS"
           value={pendingRequests.length}
-          accentColor="#d97706"
-          icon={<Clock size={16} color="#d97706" />}
+          subtext="Needs approval"
+          icon={<Clock size={18} color={colors.warning} />}
+          accentColor={colors.warning}
         />
-      </View>
-
-      <View style={styles.statsRow}>
         <StatCard
-          title="Avg Attendance"
+          title="AVG ATTENDANCE"
           value={`${stats.averageAttendance}%`}
-          accentColor="#16a34a"
-          icon={<CheckCircle2 size={16} color="#16a34a" />}
+          subtext="Class average"
+          icon={<BarChart3 size={18} color={colors.primary} />}
+          accentColor={colors.primary}
         />
         <StatCard
-          title="Low Attendance (<75%)"
+          title="AT RISK (<75%)"
           value={stats.lowAttendanceCount}
-          accentColor="#dc2626"
-          icon={<AlertTriangle size={16} color="#dc2626" />}
+          subtext="Low attendance"
+          icon={<AlertTriangle size={18} color={colors.danger} />}
+          accentColor={colors.danger}
         />
       </View>
 
       <Text style={styles.sectionHeader}>Quick Actions</Text>
+
       <TouchableOpacity
         style={styles.actionCard}
         onPress={() => navigation.navigate('PendingRequests')}
-        activeOpacity={0.7}
+        activeOpacity={0.8}
       >
         <View style={styles.actionLeft}>
-          <View style={[styles.actionIconBox, { backgroundColor: '#fff7ed' }]}>
-            <Clock size={20} color="#ea580c" />
+          <View style={[styles.actionIconBox, { backgroundColor: colors.warningBg }]}>
+            <Clock size={20} color={colors.warning} />
           </View>
-          <Text style={styles.actionText}>Process Pending Requests ({pendingRequests.length})</Text>
+          <View style={styles.actionTextBox}>
+            <Text style={styles.actionText}>Pending Leave Approvals ({pendingRequests.length})</Text>
+            <Text style={styles.actionSubtext}>Review & approve student applications</Text>
+          </View>
         </View>
-        <ChevronRight size={18} color="#94a3b8" />
+        <ChevronRight size={18} color={colors.textMuted} />
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.actionCard}
         onPress={() => navigation.navigate('StudentRecords')}
-        activeOpacity={0.7}
+        activeOpacity={0.8}
       >
         <View style={styles.actionLeft}>
-          <View style={[styles.actionIconBox, { backgroundColor: '#eff6ff' }]}>
-            <Users size={20} color="#2563eb" />
+          <View style={[styles.actionIconBox, { backgroundColor: colors.primaryLight }]}>
+            <Users size={20} color={colors.primary} />
           </View>
-          <Text style={styles.actionText}>Student Records & Attendance</Text>
+          <View style={styles.actionTextBox}>
+            <Text style={styles.actionText}>Student Records & Attendance</Text>
+            <Text style={styles.actionSubtext}>View attendance percentages & leave details</Text>
+          </View>
         </View>
-        <ChevronRight size={18} color="#94a3b8" />
+        <ChevronRight size={18} color={colors.textMuted} />
       </TouchableOpacity>
 
-      <Text style={styles.sectionHeader}>Pending Review</Text>
+      <TouchableOpacity
+        style={styles.actionCard}
+        onPress={() => navigation.navigate('Logs')}
+        activeOpacity={0.8}
+      >
+        <View style={styles.actionLeft}>
+          <View style={[styles.actionIconBox, { backgroundColor: colors.accentVioletLight }]}>
+            <FileText size={20} color={colors.accentViolet} />
+          </View>
+          <View style={styles.actionTextBox}>
+            <Text style={styles.actionText}>Leave History Logs</Text>
+            <Text style={styles.actionSubtext}>Audit past approvals and rejections</Text>
+          </View>
+        </View>
+        <ChevronRight size={18} color={colors.textMuted} />
+      </TouchableOpacity>
+
+      <Text style={styles.sectionHeader}>Pending Approval Queue</Text>
       {pendingRequests.length === 0 ? (
         <View style={styles.emptyCard}>
-          <Text style={styles.emptyText}>No pending requests for your class.</Text>
+          <CheckCircle2 size={32} color={colors.success} style={{ marginBottom: 8 }} />
+          <Text style={styles.emptyText}>All leave requests have been reviewed!</Text>
         </View>
       ) : (
-        <FlatList
-          data={pendingRequests.slice(0, 5)}
-          keyExtractor={(item) => item.id}
-          scrollEnabled={false}
-          renderItem={({ item }: { item: LeaveRequest }) => (
-            <RequestCard
-              request={item}
-              showActions
-              onApprove={(id) => processRequest(id, 'approved', item.studentId, item.studentName)}
-              onReject={(id) => processRequest(id, 'rejected', item.studentId, item.studentName)}
-            />
-          )}
-        />
+        pendingRequests.slice(0, 3).map((req) => (
+          <RequestCard
+            key={req.id}
+            request={req}
+            showActions
+            onApprove={(id) => processRequest(id, 'approved', req.studentId, req.studentName)}
+            onReject={(id) => processRequest(id, 'rejected', req.studentId, req.studentName)}
+          />
+        ))
       )}
     </View>
   );
@@ -452,83 +483,86 @@ export const DashboardScreen: React.FC<{ navigation: any }> = ({ navigation }) =
   const renderAdminDashboard = () => (
     <View style={styles.sectionContainer}>
       <View style={styles.banner}>
-        <Text style={styles.bannerTitle}>Admin Dashboard</Text>
+        <View style={styles.bannerHeaderRow}>
+          <Text style={styles.bannerTitle}>Admin Control Center</Text>
+          <View style={styles.heroBadge}>
+            <Shield size={12} color="#ffffff" />
+            <Text style={styles.heroBadgeText}>SYSTEM ADMIN</Text>
+          </View>
+        </View>
         <Text style={styles.bannerSubtitle}>
-          Manage users, department settings, and system configurations.
+          Configure system settings, manage users, assign class advisors, and export reports.
         </Text>
       </View>
 
-      <View style={styles.statsRow}>
-        <StatCard
-          title="Total Requests"
-          value={rawRequests.length}
-          accentColor="#2563eb"
-          icon={<FileText size={16} color="#2563eb" />}
-        />
-        <StatCard
-          title="Pending Action"
-          value={rawRequests.filter((r) => r.status === 'pending').length}
-          accentColor="#d97706"
-          icon={<Clock size={16} color="#d97706" />}
-        />
-      </View>
-
-      <Text style={styles.sectionHeader}>Administration Tools</Text>
+      <Text style={styles.sectionHeader}>Admin Modules</Text>
 
       <TouchableOpacity
         style={styles.actionCard}
         onPress={() => navigation.navigate('UserManagement')}
-        activeOpacity={0.7}
+        activeOpacity={0.8}
       >
         <View style={styles.actionLeft}>
-          <View style={[styles.actionIconBox, { backgroundColor: '#eff6ff' }]}>
-            <Users size={20} color="#2563eb" />
+          <View style={[styles.actionIconBox, { backgroundColor: colors.primaryLight }]}>
+            <Users size={20} color={colors.primary} />
           </View>
-          <Text style={styles.actionText}>User Management & Roles</Text>
+          <View style={styles.actionTextBox}>
+            <Text style={styles.actionText}>User & Role Management</Text>
+            <Text style={styles.actionSubtext}>Manage accounts, roles & class assignments</Text>
+          </View>
         </View>
-        <ChevronRight size={18} color="#94a3b8" />
+        <ChevronRight size={18} color={colors.textMuted} />
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.actionCard}
         onPress={() => navigation.navigate('Settings')}
-        activeOpacity={0.7}
+        activeOpacity={0.8}
       >
         <View style={styles.actionLeft}>
-          <View style={[styles.actionIconBox, { backgroundColor: '#f1f5f9' }]}>
-            <Settings size={20} color="#475569" />
+          <View style={[styles.actionIconBox, { backgroundColor: colors.warningBg }]}>
+            <Settings size={20} color={colors.warning} />
           </View>
-          <Text style={styles.actionText}>System Settings & Holidays</Text>
+          <View style={styles.actionTextBox}>
+            <Text style={styles.actionText}>System Settings & Holidays</Text>
+            <Text style={styles.actionSubtext}>Configure semester dates & holiday calendar</Text>
+          </View>
         </View>
-        <ChevronRight size={18} color="#94a3b8" />
+        <ChevronRight size={18} color={colors.textMuted} />
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.actionCard}
         onPress={() => navigation.navigate('Reports')}
-        activeOpacity={0.7}
+        activeOpacity={0.8}
       >
         <View style={styles.actionLeft}>
-          <View style={[styles.actionIconBox, { backgroundColor: '#f0fdf4' }]}>
-            <BarChart3 size={20} color="#16a34a" />
+          <View style={[styles.actionIconBox, { backgroundColor: colors.successBg }]}>
+            <BarChart3 size={20} color={colors.success} />
           </View>
-          <Text style={styles.actionText}>Reports & Analytics</Text>
+          <View style={styles.actionTextBox}>
+            <Text style={styles.actionText}>Reports & Analytics</Text>
+            <Text style={styles.actionSubtext}>Export attendance data & department metrics</Text>
+          </View>
         </View>
-        <ChevronRight size={18} color="#94a3b8" />
+        <ChevronRight size={18} color={colors.textMuted} />
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.actionCard}
         onPress={() => navigation.navigate('AuditTrail')}
-        activeOpacity={0.7}
+        activeOpacity={0.8}
       >
         <View style={styles.actionLeft}>
-          <View style={[styles.actionIconBox, { backgroundColor: '#faf5ff' }]}>
-            <Shield size={20} color="#9333ea" />
+          <View style={[styles.actionIconBox, { backgroundColor: colors.accentVioletLight }]}>
+            <Shield size={20} color={colors.accentViolet} />
           </View>
-          <Text style={styles.actionText}>Audit Trail Logs</Text>
+          <View style={styles.actionTextBox}>
+            <Text style={styles.actionText}>Audit Trail Logs</Text>
+            <Text style={styles.actionSubtext}>Security audit trail & action logs</Text>
+          </View>
         </View>
-        <ChevronRight size={18} color="#94a3b8" />
+        <ChevronRight size={18} color={colors.textMuted} />
       </TouchableOpacity>
     </View>
   );
@@ -548,7 +582,7 @@ export const DashboardScreen: React.FC<{ navigation: any }> = ({ navigation }) =
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: colors.bgPage,
   },
   loadingContainer: {
     flex: 1,
@@ -563,27 +597,50 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   scrollContent: {
-    padding: 16,
+    padding: 18,
   },
   sectionContainer: {
     flexDirection: 'column',
   },
   banner: {
-    backgroundColor: '#2563eb',
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 16,
+    backgroundColor: colors.primary,
+    borderRadius: radius.lg,
+    padding: 20,
+    marginBottom: 18,
+    ...shadows.md,
+  },
+  bannerHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
   },
   bannerTitle: {
-    fontSize: 20,
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#ffffff',
+    letterSpacing: -0.5,
+  },
+  heroBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: radius.xs,
+  },
+  heroBadgeText: {
+    fontSize: 10,
     fontWeight: '800',
     color: '#ffffff',
-    marginBottom: 4,
+    letterSpacing: 0.5,
   },
   bannerSubtitle: {
     fontSize: 13,
-    color: '#dbeafe',
-    lineHeight: 18,
+    color: '#e0e7ff',
+    lineHeight: 19,
+    fontWeight: '500',
   },
   statsRow: {
     flexDirection: 'row',
@@ -591,89 +648,102 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   sectionHeader: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#1e293b',
-    marginTop: 14,
-    marginBottom: 10,
+    fontSize: 16,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    marginTop: 16,
+    marginBottom: 12,
+    letterSpacing: -0.2,
   },
   actionCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#ffffff',
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: 10,
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.md,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    elevation: 1,
+    borderColor: colors.borderLight,
+    ...shadows.sm,
   },
   actionLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
+    flex: 1,
   },
   actionIconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
+    width: 44,
+    height: 44,
+    borderRadius: radius.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  actionTextBox: {
+    flex: 1,
+  },
   actionText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#0f172a',
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  actionSubtext: {
+    fontSize: 11,
+    color: colors.textMuted,
+    marginTop: 2,
+    fontWeight: '500',
   },
   emptyCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 20,
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.md,
+    padding: 24,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: colors.borderLight,
   },
   emptyText: {
     fontSize: 13,
-    color: '#94a3b8',
+    color: colors.textMuted,
+    fontWeight: '600',
   },
   classSelectorBox: {
-    marginBottom: 14,
+    marginBottom: 16,
   },
   selectorLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#475569',
-    marginBottom: 6,
+    fontSize: 11,
+    fontWeight: '800',
+    color: colors.textSecondary,
+    marginBottom: 8,
+    letterSpacing: 0.5,
   },
   chipRow: {
     flexDirection: 'row',
     gap: 8,
   },
   chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: radius.full,
     borderWidth: 1,
   },
   activeChip: {
-    backgroundColor: '#2563eb',
-    borderColor: '#2563eb',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   inactiveChip: {
-    backgroundColor: '#ffffff',
-    borderColor: '#cbd5e1',
+    backgroundColor: colors.bgCard,
+    borderColor: colors.borderLight,
   },
   chipText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   activeChipText: {
     color: '#ffffff',
   },
   inactiveChipText: {
-    color: '#475569',
+    color: colors.textSecondary,
   },
 });

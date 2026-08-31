@@ -15,6 +15,7 @@ import { doc, getDoc, setDoc, collection, addDoc, deleteDoc, onSnapshot } from '
 import { Holiday } from '../../types';
 import { format } from 'date-fns';
 import { ArrowLeft, Save, Plus, Trash2, Calendar, Settings as SettingsIcon } from 'lucide-react-native';
+import { colors, shadows, radius } from '../../theme';
 
 export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [minAttendance, setMinAttendance] = useState('75');
@@ -102,7 +103,7 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2563eb" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -112,36 +113,38 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
       <Header />
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <TouchableOpacity style={styles.backRow} onPress={() => navigation.goBack()} activeOpacity={0.7}>
-          <ArrowLeft size={18} color="#2563eb" />
+          <ArrowLeft size={18} color={colors.primary} />
           <Text style={styles.backText}>Back to Dashboard</Text>
         </TouchableOpacity>
 
         <Text style={styles.title}>System Settings & Holidays</Text>
-        <Text style={styles.subtitle}>Configure attendance criteria and official holiday calendars.</Text>
+        <Text style={styles.subtitle}>Configure global attendance threshold & academic holiday calendar.</Text>
 
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <SettingsIcon size={18} color="#2563eb" />
+            <SettingsIcon size={18} color={colors.primary} />
             <Text style={styles.cardTitle}>Global Attendance Thresholds</Text>
           </View>
 
-          <Text style={styles.label}>Minimum Attendance Percentage (%)</Text>
+          <Text style={styles.label}>MINIMUM REQUIRED ATTENDANCE (%)</Text>
           <View style={styles.inputBox}>
             <TextInput
               style={styles.input}
               value={minAttendance}
               onChangeText={setMinAttendance}
               keyboardType="numeric"
+              placeholderTextColor={colors.textMuted}
             />
           </View>
 
-          <Text style={styles.label}>Semester Start Date (YYYY-MM-DD)</Text>
+          <Text style={styles.label}>SEMESTER START DATE (YYYY-MM-DD)</Text>
           <View style={styles.inputBox}>
-            <Calendar size={16} color="#64748b" />
+            <Calendar size={16} color={colors.primary} style={{ marginRight: 8 }} />
             <TextInput
               style={styles.input}
               value={semesterStart}
               onChangeText={setSemesterStart}
+              placeholderTextColor={colors.textMuted}
             />
           </View>
 
@@ -149,14 +152,14 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
             style={styles.saveBtn}
             onPress={handleSaveSettings}
             disabled={saving}
-            activeOpacity={0.7}
+            activeOpacity={0.8}
           >
             {saving ? (
               <ActivityIndicator color="#ffffff" />
             ) : (
               <View style={styles.btnInner}>
                 <Save size={16} color="#ffffff" />
-                <Text style={styles.saveBtnText}>Save System Settings</Text>
+                <Text style={styles.saveBtnText}>Save Configuration</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -164,52 +167,54 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
 
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Calendar size={18} color="#2563eb" />
+            <Calendar size={18} color={colors.primary} />
             <Text style={styles.cardTitle}>Official Holiday Calendar</Text>
           </View>
 
           <View style={styles.row}>
             <View style={styles.flexHalf}>
-              <Text style={styles.label}>Holiday Name</Text>
+              <Text style={styles.label}>HOLIDAY NAME</Text>
               <View style={styles.inputBox}>
                 <TextInput
                   style={styles.input}
-                  placeholder="e.g. Festival"
+                  placeholder="e.g. Diwali"
                   value={newHolidayName}
                   onChangeText={setNewHolidayName}
-                  placeholderTextColor="#94a3b8"
+                  placeholderTextColor={colors.textMuted}
                 />
               </View>
             </View>
 
             <View style={styles.flexHalf}>
-              <Text style={styles.label}>Date (YYYY-MM-DD)</Text>
+              <Text style={styles.label}>DATE (YYYY-MM-DD)</Text>
               <View style={styles.inputBox}>
                 <TextInput
                   style={styles.input}
                   placeholder="YYYY-MM-DD"
                   value={newHolidayDate}
                   onChangeText={setNewHolidayDate}
-                  placeholderTextColor="#94a3b8"
+                  placeholderTextColor={colors.textMuted}
                 />
               </View>
             </View>
           </View>
 
-          <TouchableOpacity style={styles.addBtn} onPress={handleAddHoliday} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.addBtn} onPress={handleAddHoliday} activeOpacity={0.8}>
             <Plus size={16} color="#ffffff" />
-            <Text style={styles.addBtnText}>Add Holiday</Text>
+            <Text style={styles.addBtnText}>Add Holiday Entry</Text>
           </TouchableOpacity>
 
-          <Text style={styles.subHeader}>Configured Holidays ({holidays.length})</Text>
+          <Text style={styles.subHeader}>Registered Holidays ({holidays.length})</Text>
+
           {holidays.map((h) => (
             <View key={h.id} style={styles.holidayRow}>
               <View>
                 <Text style={styles.holidayName}>{h.name}</Text>
                 <Text style={styles.holidayDate}>{h.date}</Text>
               </View>
+
               <TouchableOpacity onPress={() => handleDeleteHoliday(h.id)} activeOpacity={0.7}>
-                <Trash2 size={16} color="#ef4444" />
+                <Trash2 size={16} color={colors.danger} />
               </TouchableOpacity>
             </View>
           ))}
@@ -222,98 +227,103 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: colors.bgPage,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.bgCard,
   },
   scrollContent: {
-    padding: 16,
+    padding: 18,
   },
   backRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 10,
-  },
-  backText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#2563eb',
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#0f172a',
-    marginBottom: 2,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: '#64748b',
-    marginBottom: 14,
-  },
-  card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    elevation: 1,
-  },
-  cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     marginBottom: 12,
   },
-  cardTitle: {
-    fontSize: 15,
+  backText: {
+    fontSize: 14,
     fontWeight: '700',
-    color: '#0f172a',
+    color: colors.primary,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: colors.textPrimary,
+    letterSpacing: -0.5,
+    marginBottom: 2,
+  },
+  subtitle: {
+    fontSize: 13,
+    color: colors.textMuted,
+    marginBottom: 16,
+    fontWeight: '500',
+  },
+  card: {
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.md,
+    padding: 18,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    ...shadows.sm,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 14,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: colors.textPrimary,
   },
   label: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#334155',
-    marginBottom: 4,
-    marginTop: 8,
+    fontSize: 10,
+    fontWeight: '800',
+    color: colors.textSecondary,
+    marginBottom: 6,
+    marginTop: 10,
+    letterSpacing: 0.5,
   },
   inputBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    height: 44,
+    backgroundColor: colors.bgPage,
+    borderRadius: radius.sm,
+    paddingHorizontal: 12,
+    height: 46,
     borderWidth: 1,
-    borderColor: '#cbd5e1',
+    borderColor: colors.borderLight,
   },
   input: {
     flex: 1,
     fontSize: 13,
-    color: '#0f172a',
+    color: colors.textPrimary,
+    fontWeight: '600',
   },
   saveBtn: {
-    backgroundColor: '#2563eb',
-    height: 44,
-    borderRadius: 10,
+    backgroundColor: colors.primary,
+    height: 48,
+    borderRadius: radius.sm,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 14,
+    marginTop: 16,
+    ...shadows.sm,
   },
   btnInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
   saveBtnText: {
     color: '#ffffff',
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   row: {
     flexDirection: 'row',
@@ -324,41 +334,44 @@ const styles = StyleSheet.create({
   },
   addBtn: {
     flexDirection: 'row',
-    backgroundColor: '#16a34a',
-    height: 40,
-    borderRadius: 10,
+    backgroundColor: colors.success,
+    height: 44,
+    borderRadius: radius.sm,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    marginTop: 12,
+    gap: 8,
+    marginTop: 14,
+    ...shadows.sm,
   },
   addBtnText: {
     color: '#ffffff',
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   subHeader: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#1e293b',
-    marginTop: 16,
-    marginBottom: 8,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    marginTop: 18,
+    marginBottom: 10,
   },
   holidayRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: colors.borderSubtle,
   },
   holidayName: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#0f172a',
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.textPrimary,
   },
   holidayDate: {
     fontSize: 11,
-    color: '#64748b',
+    color: colors.textMuted,
+    marginTop: 2,
+    fontWeight: '500',
   },
 });

@@ -12,7 +12,8 @@ import { useRequests } from '../../hooks/useRequests';
 import { Header } from '../../components/common/Header';
 import { RequestCard } from '../../components/common/RequestCard';
 import { LeaveRequest } from '../../types';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, CheckCircle2 } from 'lucide-react-native';
+import { colors, shadows, radius } from '../../theme';
 
 export const PendingRequestsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { requests, loading, processRequest } = useRequests();
@@ -25,7 +26,7 @@ export const PendingRequestsScreen: React.FC<{ navigation: any }> = ({ navigatio
 
     try {
       await processRequest(id, 'approved', item.studentId, item.studentName);
-      Alert.alert('Approved', 'Request has been approved.');
+      Alert.alert('Approved', 'Request has been approved successfully.');
     } catch (err: any) {
       Alert.alert('Error', err.message || 'Action failed.');
     }
@@ -62,20 +63,21 @@ export const PendingRequestsScreen: React.FC<{ navigation: any }> = ({ navigatio
       <Header />
       <View style={styles.content}>
         <TouchableOpacity style={styles.backRow} onPress={() => navigation.goBack()} activeOpacity={0.7}>
-          <ArrowLeft size={18} color="#2563eb" />
+          <ArrowLeft size={18} color={colors.primary} />
           <Text style={styles.backText}>Back to Dashboard</Text>
         </TouchableOpacity>
 
-        <Text style={styles.title}>Pending Approval Requests</Text>
-        <Text style={styles.subtitle}>Review leave and OD applications from students.</Text>
+        <Text style={styles.title}>Pending Approvals Queue</Text>
+        <Text style={styles.subtitle}>Review and approve student leave and OD applications.</Text>
 
         {loading ? (
           <View style={styles.centerBox}>
-            <ActivityIndicator size="large" color="#2563eb" />
+            <ActivityIndicator size="large" color={colors.primary} />
           </View>
         ) : pendingRequests.length === 0 ? (
           <View style={styles.centerBox}>
-            <Text style={styles.emptyText}>No pending requests to review.</Text>
+            <CheckCircle2 size={40} color={colors.success} style={{ marginBottom: 10 }} />
+            <Text style={styles.emptyText}>All leave applications have been reviewed!</Text>
           </View>
         ) : (
           <FlatList
@@ -101,33 +103,35 @@ export const PendingRequestsScreen: React.FC<{ navigation: any }> = ({ navigatio
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: colors.bgPage,
   },
   content: {
     flex: 1,
-    padding: 16,
+    padding: 18,
   },
   backRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 10,
+    gap: 8,
+    marginBottom: 12,
   },
   backText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#2563eb',
+    fontWeight: '700',
+    color: colors.primary,
   },
   title: {
     fontSize: 22,
-    fontWeight: '800',
-    color: '#0f172a',
+    fontWeight: '900',
+    color: colors.textPrimary,
+    letterSpacing: -0.5,
     marginBottom: 2,
   },
   subtitle: {
     fontSize: 13,
-    color: '#64748b',
-    marginBottom: 14,
+    color: colors.textMuted,
+    marginBottom: 16,
+    fontWeight: '500',
   },
   centerBox: {
     flex: 1,
@@ -137,9 +141,11 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: '#94a3b8',
+    color: colors.textMuted,
+    fontWeight: '600',
   },
   listPadding: {
-    paddingBottom: 20,
+    paddingBottom: 24,
   },
 });
+

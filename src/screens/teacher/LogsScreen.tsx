@@ -11,7 +11,8 @@ import { useRequests } from '../../hooks/useRequests';
 import { Header } from '../../components/common/Header';
 import { LeaveLog } from '../../types';
 import { format } from 'date-fns';
-import { ArrowLeft, Clock, CheckCircle2, XCircle } from 'lucide-react-native';
+import { ArrowLeft, Clock, CheckCircle2, XCircle, FileText } from 'lucide-react-native';
+import { colors, shadows, radius } from '../../theme';
 
 export const LogsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { logs, loading } = useRequests();
@@ -21,19 +22,20 @@ export const LogsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       <Header />
       <View style={styles.content}>
         <TouchableOpacity style={styles.backRow} onPress={() => navigation.goBack()} activeOpacity={0.7}>
-          <ArrowLeft size={18} color="#2563eb" />
+          <ArrowLeft size={18} color={colors.primary} />
           <Text style={styles.backText}>Back to Dashboard</Text>
         </TouchableOpacity>
 
         <Text style={styles.title}>Decision Audit Logs</Text>
-        <Text style={styles.subtitle}>History of leave request approvals and rejections.</Text>
+        <Text style={styles.subtitle}>Complete history of leave request approvals and rejections.</Text>
 
         {loading ? (
           <View style={styles.centerBox}>
-            <ActivityIndicator size="large" color="#2563eb" />
+            <ActivityIndicator size="large" color={colors.primary} />
           </View>
         ) : logs.length === 0 ? (
           <View style={styles.centerBox}>
+            <FileText size={36} color={colors.textMuted} style={{ marginBottom: 8 }} />
             <Text style={styles.emptyText}>No action logs recorded yet.</Text>
           </View>
         ) : (
@@ -47,9 +49,9 @@ export const LogsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 <View style={styles.logHeader}>
                   <View style={styles.iconRow}>
                     {item.action === 'approved' ? (
-                      <CheckCircle2 size={18} color="#16a34a" />
+                      <CheckCircle2 size={18} color={colors.success} />
                     ) : (
-                      <XCircle size={18} color="#dc2626" />
+                      <XCircle size={18} color={colors.danger} />
                     )}
                     <Text style={styles.studentName}>{item.studentName || 'Student'}</Text>
                   </View>
@@ -62,12 +64,12 @@ export const LogsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 </View>
 
                 <Text style={styles.metaText}>
-                  Action by: {item.actionByName || 'Staff'} ({item.actionByRole?.toUpperCase()})
+                  Processed by: {item.actionByName || 'Staff'} ({item.actionByRole?.toUpperCase()})
                 </Text>
 
                 <View style={styles.timeRow}>
-                  <Clock size={12} color="#94a3b8" />
-                  <Text style={styles.timeText}>{format(new Date(item.timestamp), 'MMM dd, yyyy - hh:mm a')}</Text>
+                  <Clock size={12} color={colors.textMuted} />
+                  <Text style={styles.timeText}>{format(new Date(item.timestamp), 'MMM dd, yyyy • hh:mm a')}</Text>
                 </View>
 
                 {item.comment ? (
@@ -87,33 +89,35 @@ export const LogsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: colors.bgPage,
   },
   content: {
     flex: 1,
-    padding: 16,
+    padding: 18,
   },
   backRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 10,
+    gap: 8,
+    marginBottom: 12,
   },
   backText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#2563eb',
+    fontWeight: '700',
+    color: colors.primary,
   },
   title: {
     fontSize: 22,
-    fontWeight: '800',
-    color: '#0f172a',
+    fontWeight: '900',
+    color: colors.textPrimary,
+    letterSpacing: -0.5,
     marginBottom: 2,
   },
   subtitle: {
     fontSize: 13,
-    color: '#64748b',
-    marginBottom: 14,
+    color: colors.textMuted,
+    marginBottom: 16,
+    fontWeight: '500',
   },
   centerBox: {
     flex: 1,
@@ -123,25 +127,26 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: '#94a3b8',
+    color: colors.textMuted,
+    fontWeight: '600',
   },
   listPadding: {
-    paddingBottom: 20,
+    paddingBottom: 24,
   },
   logCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 10,
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.md,
+    padding: 16,
+    marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    elevation: 1,
+    borderColor: colors.borderLight,
+    ...shadows.sm,
   },
   logHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   iconRow: {
     flexDirection: 'row',
@@ -150,53 +155,63 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   studentName: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#0f172a',
+    fontSize: 15,
+    fontWeight: '800',
+    color: colors.textPrimary,
   },
   badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: radius.xs,
+    borderWidth: 1,
   },
   approveBadge: {
-    backgroundColor: '#dcfce7',
+    backgroundColor: colors.successBg,
+    borderColor: colors.successBorder,
   },
   rejectBadge: {
-    backgroundColor: '#fee2e2',
+    backgroundColor: colors.dangerBg,
+    borderColor: colors.dangerBorder,
   },
   badgeText: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '800',
+    letterSpacing: 0.4,
   },
   approveText: {
-    color: '#15803d',
+    color: colors.successText,
   },
   rejectText: {
-    color: '#b91c1c',
+    color: colors.dangerText,
   },
   metaText: {
     fontSize: 12,
-    color: '#475569',
-    marginBottom: 4,
+    color: colors.textSecondary,
+    marginBottom: 6,
+    fontWeight: '600',
   },
   timeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
   },
   timeText: {
     fontSize: 11,
-    color: '#94a3b8',
+    color: colors.textMuted,
+    fontWeight: '500',
   },
   commentBox: {
     backgroundColor: '#f8fafc',
-    borderRadius: 8,
-    padding: 8,
-    marginTop: 8,
+    borderRadius: radius.xs,
+    padding: 10,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
   },
   commentText: {
-    fontSize: 11,
-    color: '#334155',
+    fontSize: 12,
+    color: colors.textPrimary,
+    fontWeight: '500',
   },
 });
+

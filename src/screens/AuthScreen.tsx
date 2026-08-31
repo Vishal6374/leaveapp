@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useDepartments } from '../hooks/useDepartments';
-import { Mail, Lock, User, Hash, ChevronRight, Zap } from 'lucide-react-native';
+import { Mail, Lock, User, Hash, ChevronRight, Zap, Shield, Sparkles } from 'lucide-react-native';
+import { colors, shadows, radius } from '../theme';
 
 export const AuthScreen: React.FC = () => {
   const { signIn, signUp } = useAuth();
@@ -81,33 +82,46 @@ export const AuthScreen: React.FC = () => {
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
       <View style={styles.card}>
+        {/* Brand Header */}
         <View style={styles.logoRow}>
-          <View style={styles.logoBox}>
-            <Text style={styles.logoText}>CLH</Text>
+          <View style={styles.logoGlow}>
+            <View style={styles.logoBox}>
+              <Sparkles size={24} color="#ffffff" />
+            </View>
           </View>
           <Text style={styles.appTitle}>Class Leave Manager</Text>
+          <Text style={styles.appSubtitle}>Smart Leave & Attendance Portal</Text>
         </View>
 
-        <View style={styles.header}>
-          <Text style={styles.title}>{isLogin ? 'Welcome Back' : 'Get Started'}</Text>
-          <Text style={styles.subtitle}>
-            {isLogin
-              ? 'Enter your credentials to access your portal'
-              : 'Join our community of students and staff'}
-          </Text>
+        {/* Mode Segmented Tab Toggle */}
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[styles.tabBtn, isLogin ? styles.tabBtnActive : null]}
+            onPress={() => setIsLogin(true)}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.tabText, isLogin ? styles.tabTextActive : null]}>Sign In</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tabBtn, !isLogin ? styles.tabBtnActive : null]}
+            onPress={() => setIsLogin(false)}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.tabText, !isLogin ? styles.tabTextActive : null]}>Register</Text>
+          </TouchableOpacity>
         </View>
 
         {!isLogin ? (
           <View style={styles.formSection}>
             <Text style={styles.label}>FULL NAME *</Text>
             <View style={styles.inputBox}>
-              <User size={18} color="#64748b" />
+              <User size={18} color={colors.primary} />
               <TextInput
                 style={styles.input}
                 placeholder="John Doe"
                 value={name}
                 onChangeText={setName}
-                placeholderTextColor="#94a3b8"
+                placeholderTextColor={colors.textMuted}
               />
             </View>
 
@@ -118,6 +132,7 @@ export const AuthScreen: React.FC = () => {
                   key={dept}
                   style={[styles.deptChip, department === dept ? styles.activeChip : styles.inactiveChip]}
                   onPress={() => setDepartment(dept)}
+                  activeOpacity={0.8}
                 >
                   <Text style={[styles.chipText, department === dept ? styles.activeChipText : styles.inactiveChipText]}>
                     {dept}
@@ -135,6 +150,7 @@ export const AuthScreen: React.FC = () => {
                       key={y}
                       style={[styles.yearChip, year === y ? styles.activeChip : styles.inactiveChip]}
                       onPress={() => setYear(y)}
+                      activeOpacity={0.8}
                     >
                       <Text style={[styles.chipText, year === y ? styles.activeChipText : styles.inactiveChipText]}>
                         Yr {y}
@@ -147,13 +163,13 @@ export const AuthScreen: React.FC = () => {
               <View style={styles.flexHalf}>
                 <Text style={styles.label}>SIN NO.</Text>
                 <View style={styles.inputBox}>
-                  <Hash size={18} color="#64748b" />
+                  <Hash size={18} color={colors.primary} />
                   <TextInput
                     style={styles.input}
                     placeholder="123456"
                     value={sinNumber}
                     onChangeText={setSinNumber}
-                    placeholderTextColor="#94a3b8"
+                    placeholderTextColor={colors.textMuted}
                   />
                 </View>
               </View>
@@ -164,7 +180,7 @@ export const AuthScreen: React.FC = () => {
         <View style={styles.formSection}>
           <Text style={styles.label}>EMAIL ADDRESS *</Text>
           <View style={styles.inputBox}>
-            <Mail size={18} color="#64748b" />
+            <Mail size={18} color={colors.primary} />
             <TextInput
               style={styles.input}
               placeholder="you@example.com"
@@ -172,20 +188,20 @@ export const AuthScreen: React.FC = () => {
               onChangeText={setEmail}
               autoCapitalize="none"
               keyboardType="email-address"
-              placeholderTextColor="#94a3b8"
+              placeholderTextColor={colors.textMuted}
             />
           </View>
 
           <Text style={styles.label}>PASSWORD *</Text>
           <View style={styles.inputBox}>
-            <Lock size={18} color="#64748b" />
+            <Lock size={18} color={colors.primary} />
             <TextInput
               style={styles.input}
               placeholder="••••••••"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
-              placeholderTextColor="#94a3b8"
+              placeholderTextColor={colors.textMuted}
             />
           </View>
         </View>
@@ -194,33 +210,23 @@ export const AuthScreen: React.FC = () => {
           style={styles.submitBtn}
           onPress={handleAuth}
           disabled={loading}
-          activeOpacity={0.7}
+          activeOpacity={0.8}
         >
           {loading ? (
             <ActivityIndicator color="#ffffff" />
           ) : (
             <View style={styles.btnInner}>
-              <Text style={styles.submitBtnText}>{isLogin ? 'Sign In' : 'Create Account'}</Text>
+              <Text style={styles.submitBtnText}>{isLogin ? 'Sign In to Portal' : 'Create Account'}</Text>
               <ChevronRight size={18} color="#ffffff" />
             </View>
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.toggleBtn}
-          onPress={() => setIsLogin(!isLogin)}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.toggleBtnText}>
-            {isLogin ? "New here? Join Now" : 'Already member? Sign In'}
-          </Text>
-        </TouchableOpacity>
-
         {isLogin ? (
           <View style={styles.sandboxSection}>
             <View style={styles.sandboxHeader}>
-              <Zap size={14} color="#2563eb" />
-              <Text style={styles.sandboxTitle}>QUICK ACCESS SANDBOX</Text>
+              <Zap size={14} color={colors.primary} />
+              <Text style={styles.sandboxTitle}>QUICK DEMO ACCOUNTS</Text>
             </View>
             <View style={styles.gridContainer}>
               {QUICK_USERS.map((user) => (
@@ -232,7 +238,7 @@ export const AuthScreen: React.FC = () => {
                   activeOpacity={0.7}
                 >
                   {quickLoginEmail === user.email ? (
-                    <ActivityIndicator size="small" color="#2563eb" />
+                    <ActivityIndicator size="small" color={colors.primary} />
                   ) : (
                     <Text style={styles.quickBtnText}>{user.label}</Text>
                   )}
@@ -249,174 +255,183 @@ export const AuthScreen: React.FC = () => {
 const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: colors.bgPage,
     justifyContent: 'center',
-    padding: 16,
+    padding: 20,
   },
   card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 20,
-    padding: 20,
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.xl,
+    padding: 24,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    elevation: 3,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
+    borderColor: colors.borderLight,
+    ...shadows.lg,
   },
   logoRow: {
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: 20,
+  },
+  logoGlow: {
+    padding: 4,
+    borderRadius: radius.lg,
+    backgroundColor: colors.primaryLight,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    marginBottom: 10,
+    ...shadows.glow,
   },
   logoBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: '#2563eb',
+    width: 52,
+    height: 52,
+    borderRadius: radius.md,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
-  },
-  logoText: {
-    color: '#ffffff',
-    fontWeight: '900',
-    fontSize: 16,
   },
   appTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#0f172a',
+    fontSize: 22,
+    fontWeight: '900',
+    color: colors.textPrimary,
+    letterSpacing: -0.5,
   },
-  header: {
-    marginBottom: 16,
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1e293b',
-    marginBottom: 2,
-  },
-  subtitle: {
+  appSubtitle: {
     fontSize: 12,
-    color: '#64748b',
-    textAlign: 'center',
+    fontWeight: '600',
+    color: colors.textMuted,
+    marginTop: 2,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#f1f5f9',
+    borderRadius: radius.md,
+    padding: 4,
+    marginBottom: 18,
+  },
+  tabBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: radius.sm,
+  },
+  tabBtnActive: {
+    backgroundColor: colors.bgCard,
+    ...shadows.sm,
+  },
+  tabText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.textMuted,
+  },
+  tabTextActive: {
+    color: colors.primary,
   },
   formSection: {
-    marginBottom: 12,
+    marginBottom: 14,
   },
   label: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
-    color: '#64748b',
-    marginBottom: 4,
-    marginTop: 8,
+    color: colors.textSecondary,
+    marginBottom: 6,
+    marginTop: 10,
     letterSpacing: 0.5,
   },
   inputBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 46,
+    backgroundColor: colors.bgPage,
+    borderRadius: radius.sm,
+    paddingHorizontal: 14,
+    height: 48,
     borderWidth: 1,
-    borderColor: '#cbd5e1',
+    borderColor: colors.borderLight,
   },
   input: {
     flex: 1,
-    fontSize: 13,
-    color: '#0f172a',
-    marginLeft: 8,
+    fontSize: 14,
+    color: colors.textPrimary,
+    marginLeft: 10,
+    fontWeight: '500',
   },
   chipRow: {
     flexDirection: 'row',
-    gap: 6,
+    gap: 8,
     marginVertical: 4,
   },
   deptChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: radius.xs,
     borderWidth: 1,
   },
   yearChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: radius.xs,
     borderWidth: 1,
   },
   activeChip: {
-    backgroundColor: '#2563eb',
-    borderColor: '#2563eb',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   inactiveChip: {
-    backgroundColor: '#f1f5f9',
-    borderColor: '#cbd5e1',
+    backgroundColor: colors.bgPage,
+    borderColor: colors.borderLight,
   },
   chipText: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '700',
   },
   activeChipText: {
     color: '#ffffff',
   },
   inactiveChipText: {
-    color: '#475569',
+    color: colors.textSecondary,
   },
   row: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 12,
   },
   flexHalf: {
     flex: 1,
   },
   submitBtn: {
-    backgroundColor: '#2563eb',
-    height: 48,
-    borderRadius: 12,
+    backgroundColor: colors.primary,
+    height: 52,
+    borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 12,
+    marginTop: 14,
+    ...shadows.md,
   },
   btnInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
   submitBtnText: {
     color: '#ffffff',
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  toggleBtn: {
-    marginTop: 12,
-    alignItems: 'center',
-    padding: 6,
-  },
-  toggleBtnText: {
-    color: '#2563eb',
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: 0.2,
   },
   sandboxSection: {
-    marginTop: 16,
-    paddingTop: 14,
+    marginTop: 20,
+    paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
+    borderTopColor: colors.borderSubtle,
   },
   sandboxHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
-    marginBottom: 10,
+    gap: 6,
+    marginBottom: 12,
   },
   sandboxTitle: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
-    color: '#64748b',
+    color: colors.textMuted,
     letterSpacing: 1,
   },
   gridContainer: {
@@ -426,10 +441,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   quickBtn: {
-    backgroundColor: '#f1f5f9',
+    backgroundColor: colors.primaryLight,
     borderWidth: 1,
-    borderColor: '#cbd5e1',
-    borderRadius: 8,
+    borderColor: '#c7d2fe',
+    borderRadius: radius.xs,
     paddingHorizontal: 12,
     paddingVertical: 8,
     minWidth: '28%',
@@ -437,8 +452,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   quickBtnText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#1e293b',
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.primaryDark,
   },
 });

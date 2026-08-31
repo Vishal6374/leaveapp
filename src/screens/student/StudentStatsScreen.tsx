@@ -14,7 +14,8 @@ import { db } from '../../lib/firebase';
 import { collection, onSnapshot, query, doc } from 'firebase/firestore';
 import { format, eachDayOfInterval, startOfMonth, getDay } from 'date-fns';
 import type { Holiday } from '../../types';
-import { ArrowLeft, CheckCircle2, Clock, XCircle, FileText, AlertTriangle } from 'lucide-react-native';
+import { ArrowLeft, CheckCircle2, Clock, XCircle, FileText, AlertTriangle, ShieldCheck } from 'lucide-react-native';
+import { colors, shadows, radius } from '../../theme';
 
 export const StudentStatsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { requests, loading } = useRequests();
@@ -88,8 +89,8 @@ export const StudentStatsScreen: React.FC<{ navigation: any }> = ({ navigation }
   if (loading || loadingConfig) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2563eb" />
-        <Text style={styles.loadingText}>Loading Statistics...</Text>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={styles.loadingText}>Calculating Attendance Metrics...</Text>
       </View>
     );
   }
@@ -101,60 +102,66 @@ export const StudentStatsScreen: React.FC<{ navigation: any }> = ({ navigation }
       <Header />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <TouchableOpacity style={styles.backRow} onPress={() => navigation.goBack()} activeOpacity={0.7}>
-          <ArrowLeft size={18} color="#2563eb" />
+          <ArrowLeft size={18} color={colors.primary} />
           <Text style={styles.backText}>Back to Dashboard</Text>
         </TouchableOpacity>
 
-        <Text style={styles.title}>Attendance & Request Metrics</Text>
+        <Text style={styles.title}>Attendance & Analytics</Text>
 
         {isLow ? (
           <View style={styles.alertBox}>
-            <AlertTriangle size={20} color="#dc2626" />
+            <AlertTriangle size={20} color={colors.danger} />
             <View style={styles.alertTextContent}>
               <Text style={styles.alertTitle}>Attendance Warning {"(<75%)"}</Text>
               <Text style={styles.alertDesc}>
-                Your current attendance is {attendanceStats.attendanceRate}%. Submitting further leave requests may put you below college eligibility criteria.
+                Your current attendance is {attendanceStats.attendanceRate}%. Submitting further leave requests may put you below eligibility criteria.
               </Text>
             </View>
           </View>
         ) : null}
 
         <View style={styles.banner}>
-          <Text style={styles.bannerRate}>{attendanceStats.attendanceRate}%</Text>
-          <Text style={styles.bannerSub}>Current Cumulative Attendance Rate</Text>
+          <View style={styles.bannerRateGlow}>
+            <Text style={styles.bannerRate}>{attendanceStats.attendanceRate}%</Text>
+          </View>
+          <Text style={styles.bannerSub}>Cumulative Attendance Rate</Text>
           <Text style={styles.bannerDetails}>
-            {attendanceStats.workingDays - attendanceStats.absentDays} Days Present out of {attendanceStats.workingDays} Total Working Days
+            {attendanceStats.workingDays - attendanceStats.absentDays} Days Present out of {attendanceStats.workingDays} Working Days
           </Text>
         </View>
 
-        <Text style={styles.sectionHeader}>Request Breakdown</Text>
+        <Text style={styles.sectionHeader}>Request Statistics</Text>
         <View style={styles.statsGrid}>
           <StatCard
-            title="Total Submitted"
+            title="TOTAL SUBMITTED"
             value={requests.length}
-            accentColor="#2563eb"
-            icon={<FileText size={16} color="#2563eb" />}
+            subtext="Applications"
+            accentColor={colors.primary}
+            icon={<FileText size={18} color={colors.primary} />}
           />
           <StatCard
-            title="Approved"
+            title="APPROVED"
             value={approved.length}
-            accentColor="#16a34a"
-            icon={<CheckCircle2 size={16} color="#16a34a" />}
+            subtext="Granted"
+            accentColor={colors.success}
+            icon={<CheckCircle2 size={18} color={colors.success} />}
           />
         </View>
 
         <View style={styles.statsGrid}>
           <StatCard
-            title="Pending"
+            title="PENDING"
             value={pending.length}
-            accentColor="#d97706"
-            icon={<Clock size={16} color="#d97706" />}
+            subtext="In review"
+            accentColor={colors.warning}
+            icon={<Clock size={18} color={colors.warning} />}
           />
           <StatCard
-            title="Rejected"
+            title="REJECTED"
             value={rejected.length}
-            accentColor="#dc2626"
-            icon={<XCircle size={16} color="#dc2626" />}
+            subtext="Declined"
+            accentColor={colors.danger}
+            icon={<XCircle size={18} color={colors.danger} />}
           />
         </View>
       </ScrollView>
@@ -165,92 +172,101 @@ export const StudentStatsScreen: React.FC<{ navigation: any }> = ({ navigation }
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: colors.bgPage,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.bgCard,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#64748b',
+    color: colors.textMuted,
+    fontWeight: '600',
   },
   scrollContent: {
-    padding: 16,
+    padding: 18,
   },
   backRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     marginBottom: 12,
   },
   backText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#2563eb',
+    fontWeight: '700',
+    color: colors.primary,
   },
   title: {
     fontSize: 22,
-    fontWeight: '800',
-    color: '#0f172a',
+    fontWeight: '900',
+    color: colors.textPrimary,
+    letterSpacing: -0.5,
     marginBottom: 14,
   },
   alertBox: {
     flexDirection: 'row',
-    backgroundColor: '#fef2f2',
+    backgroundColor: colors.dangerBg,
     borderWidth: 1,
-    borderColor: '#fca5a5',
-    borderRadius: 14,
-    padding: 14,
+    borderColor: colors.dangerBorder,
+    borderRadius: radius.md,
+    padding: 16,
     marginBottom: 16,
-    gap: 10,
+    gap: 12,
   },
   alertTextContent: {
     flex: 1,
   },
   alertTitle: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '800',
-    color: '#991b1b',
+    color: colors.dangerText,
     marginBottom: 2,
   },
   alertDesc: {
     fontSize: 12,
-    color: '#b91c1c',
-    lineHeight: 16,
+    color: colors.dangerText,
+    lineHeight: 18,
+    fontWeight: '500',
   },
   banner: {
-    backgroundColor: '#1e293b',
-    borderRadius: 18,
-    padding: 20,
+    backgroundColor: '#0f172a',
+    borderRadius: radius.lg,
+    padding: 24,
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 18,
+    ...shadows.lg,
+  },
+  bannerRateGlow: {
+    marginBottom: 6,
   },
   bannerRate: {
-    fontSize: 36,
+    fontSize: 44,
     fontWeight: '900',
-    color: '#38bdf8',
-    marginBottom: 4,
+    color: colors.secondary,
+    letterSpacing: -1,
   },
   bannerSub: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 15,
+    fontWeight: '800',
     color: '#ffffff',
     marginBottom: 4,
   },
   bannerDetails: {
     fontSize: 12,
-    color: '#94a3b8',
+    color: colors.textMuted,
+    fontWeight: '500',
   },
   sectionHeader: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#1e293b',
+    fontSize: 16,
+    fontWeight: '800',
+    color: colors.textPrimary,
     marginTop: 8,
-    marginBottom: 10,
+    marginBottom: 12,
+    letterSpacing: -0.2,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -258,3 +274,4 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
 });
+
