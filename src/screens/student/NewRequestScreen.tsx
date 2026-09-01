@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,14 +10,17 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRequests } from '../../hooks/useRequests';
+import { useAttendancePrediction } from '../../hooks/useAttendancePrediction';
 import { Header } from '../../components/common/Header';
-import { RequestType } from '../../types';
-import { format, addDays } from 'date-fns';
-import { Calendar, FileText, ArrowLeft, Send, Sparkles } from 'lucide-react-native';
+import { RequestType, Holiday } from '../../types';
+import { db } from '../../lib/firebase';
+import { collection, onSnapshot, doc } from 'firebase/firestore';
+import { format, addDays, startOfMonth } from 'date-fns';
+import { Calendar, FileText, ArrowLeft, Send, AlertTriangle, TrendingDown, Sparkles } from 'lucide-react-native';
 import { colors, shadows, radius } from '../../theme';
 
 export const NewRequestScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
-  const { createRequest } = useRequests();
+  const { createRequest, requests } = useRequests();
 
   const [requestType, setRequestType] = useState<RequestType>('leave');
   const [fromDateStr, setFromDateStr] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -25,6 +28,50 @@ export const NewRequestScreen: React.FC<{ navigation: any }> = ({ navigation }) 
   const [reason, setReason] = useState('');
   const [subType, setSubType] = useState('casual');
   const [loading, setLoading] = useState(false);
+
+  const [holidays, setHolidays] = useState<Holiday[]>([]);
+  const [semesterStart, setSemesterStart] = useState<string>(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
+  const [minAttendance, setMinAttendance] = useState<number>(75);
+
+  useEffect(() => {
+    const unsubH = onSnapshot(collection(db, 'holidays'), (snap) => {
+      setHolidays(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Holiday));
+    });
+    const unsubS = onSnapshot(doc(db, 'systemSettings', 'global'), (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data.semesterStart) setSemesterStart(data.semesterStart);
+        if (data.minAttendancePercent) setMinAttendance(data.minAttendancePercent);
+      }
+    });
+
+    return () => {
+      unsubH();
+      unsubS();
+    };
+  }, []);
+
+  const approvedRequests = useMemo(() => {
+    return requests.filter((r) => r.status === 'approved');
+  }, [requests]);
+
+  const proposedFromDate = useMemo(() => {
+    const d = new Date(fromDateStr);
+    return isNaN(d.getTime()) ? undefined : d;
+  }, [fromDateStr]);
+
+  const proposedToDate = useMemo(() => {
+    const d = new Date(toDateStr);
+    return isNaN(d.getTime()) ? undefined : d;
+  }, [toDateStr]);
+
+  const { currentPct, projectedPct, wouldDropBelowThreshold } = useAttendancePrediction({
+    approvedRequests,
+    holidays,
+    semesterConfig: { start: semesterStart, threshold: minAttendance },
+    proposedFromDate,
+    proposedToDate,
+  });
 
   const handleSubmit = async () => {
     if (!reason.trim()) {
@@ -148,6 +195,39 @@ export const NewRequestScreen: React.FC<{ navigation: any }> = ({ navigation }) 
                 />
               </View>
             </View>
+          </View>
+
+          {/* Attendance Prediction Preview Banner */}
+          <View style={styles.predictionCard}>
+            <View style={styles.predictionHeader}>
+              <Sparkles size={14} color={colors.primary} />
+              <Text style={styles.predictionTitle}>ATTENDANCE IMPACT PREDICTION</Text>
+            </View>
+
+            <View style={styles.predictionRow}>
+              <View style={styles.predItem}>
+                <Text style={styles.predVal}>{currentPct}%</Text>
+                <Text style={styles.predSub}>Current</Text>
+              </View>
+
+              <TrendingDown size={20} color={colors.textMuted} />
+
+              <View style={styles.predItem}>
+                <Text style={[styles.predVal, { color: wouldDropBelowThreshold ? colors.danger : colors.primary }]}>
+                  {projectedPct}%
+                </Text>
+                <Text style={styles.predSub}>Projected</Text>
+              </View>
+            </View>
+
+            {wouldDropBelowThreshold ? (
+              <View style={styles.warningBox}>
+                <AlertTriangle size={16} color={colors.dangerText} />
+                <Text style={styles.warningText}>
+                  Warning: Approving this leave will drop your attendance below the required {minAttendance}% threshold!
+                </Text>
+              </View>
+            ) : null}
           </View>
 
           {/* Reason Input */}
@@ -322,6 +402,63 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontWeight: '600',
   },
+  predictionCard: {
+    backgroundColor: colors.primaryLight,
+    borderRadius: radius.md,
+    padding: 14,
+    marginTop: 14,
+    borderWidth: 1,
+    borderColor: '#c7d2fe',
+  },
+  predictionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  predictionTitle: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: colors.primaryDark,
+    letterSpacing: 0.5,
+  },
+  predictionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+  },
+  predItem: {
+    alignItems: 'center',
+  },
+  predVal: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: colors.primaryDark,
+  },
+  predSub: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+  },
+  warningBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: colors.dangerBg,
+    borderColor: colors.dangerBorder,
+    borderWidth: 1,
+    borderRadius: radius.xs,
+    padding: 10,
+    marginTop: 10,
+  },
+  warningText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.dangerText,
+    flex: 1,
+    lineHeight: 16,
+  },
   textAreaBox: {
     height: 110,
     alignItems: 'flex-start',
@@ -353,4 +490,5 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
 });
+
 
